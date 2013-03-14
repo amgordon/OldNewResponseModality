@@ -1,0 +1,11 @@
+function res = absCon_analyzer(theData)
+
+conds = [theData.cond{:}];
+resps = theData.stimResp;
+
+respAbs = strcmp(resps, 'q');
+respCon = strcmp(resps, 'p');
+respLegit = respAbs + respCon;
+
+res.corAbs = sum(respAbs .* (conds==1) .* ) / sum(conds==1);
+res.corCon = sum(respCon.* (conds==2) .* respLegit) / sum(conds==2);

@@ -1,0 +1,19 @@
+function res = ON_analyzer(theData)
+
+idxOld = theData.oldNew==1;
+idxNew = theData.oldNew==2;
+
+for i =1:length(theData.stimResp)
+    if strcmp(theData.stimresp{i}, 'noanswer')
+        recordedResp{i} = theData.judgeResp{i};
+    else
+        recordedResp{i} = theData.stimresp{i};
+    end
+    
+    if iscell (recordedResp{i}(1))
+        firstResp{i} = recordedResp{i}(1);
+    else
+        firstResp{i} = recordedResp(1);
+    end
+end
+

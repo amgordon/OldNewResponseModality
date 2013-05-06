@@ -16,11 +16,11 @@ cd(thePath.list);
 
 list = load(listName);
 
-theData.modality = 3 - list.testList(:,1);
-theData.oldNew = 3 - list.testList(:,2);
-theData.conf = 3 - list.testList(:,3);
+theData.modality = 3 - list.RMList(:,1);
+theData.oldNew = 3 - list.RMList(:,2);
+theData.conf = 3 - list.RMList(:,3);
 
-listLength = length(theData.item);
+listLength = length(theData.modality);
 
 scrsz = get(0,'ScreenSize');
 
@@ -51,11 +51,12 @@ else
 end
 
 % Diagram of trial
+cueTime = 60*refreshInterval;
 stimTime = 60*refreshInterval;  % the word and main response time
-respEndTime = 120 * refreshInterval;  % for running out of time
 fixTime = 30* refreshInterval; % fixation time.  
 scanLeadinTime = 12*60*refreshInterval;
-modChangeTime = 6*60*refreshInterval;
+delayTime1 = 30*refreshInterval;
+delayTime2 = 30*refreshInterval;
 behLeadinTime = 4*60*refreshInterval;
 
 centerX = S.myRect(3)/2;
@@ -89,6 +90,8 @@ hand = Screen(S.Window,'MakeTexture', pic);
 
 modalities = {eye, hand, fix};
 hands = {'Left','Right'};
+Confs = {'High', 'Low', '+'};
+Mems = {'Old', 'New', '+'};
 
 if S.scanner==2
     fingers = {'q' 'p'};
@@ -169,24 +172,27 @@ DrawFormattedText(S.Window,'+','center','center',S.textColor);
 Screen(S.Window,'Flip');
 qKeys(startTime,goTime,S.boxNum);
 
-oldModality = -1;
-
 for Trial = 1:listLength
 
     ons_start = GetSecs;         
     theData.onset(Trial) = GetSecs - startTime; %precise onset of trial presentation
     
     % Fixation
-    goTime = fixTime + goTime;
+    goTime = fixTime;
     Screen(S.Window, 'DrawTexture', blank);
     DrawFormattedText(S.Window,'+','center','center',S.textColor);
     Screen(S.Window,'Flip');
     [keys RT] = qKeys(ons_start,goTime,S.boxNum); 
     
     % Modality Cue
-    goTime = goTime + stimTime;
-    Screen(S.Window, 'DrawTexture', modalities{theData.modality(Trial)});
-    DrawFormattedText(S.Window,message,'center','center',S.textColor);
+    goTime = goTime + cueTime;
+    if theData.modality(Trial)~=3
+        Screen(S.Window, 'DrawTexture', blank);
+        message = MessageCue{theData.modality(Trial)};
+    else
+        Screen(S.Window, 'DrawTexture', blank);
+        DrawFormattedText(S.Window,'+','center','center', S.textColor);
+    end
     Screen(S.Window,'Flip');
     [keys RT] = qKeys(ons_start,goTime,S.boxNum);    
     theData.stimresp{Trial} = keys;
@@ -203,18 +209,25 @@ for Trial = 1:listLength
 
     % Response
     goTime = goTime + stimTime;
-    Screen(S.Window, 'DrawTexture', modalities{newModality});
-    DrawFormattedText(S.Window,message,'center','center',S.textColor);
-    Screen('FillRect', S.Window, 255, [0, 0, 200, 200])
-    Screen('FillRect', S.Window, 255, [0, scrsz(4)-200, 200, scrsz(4)])
-    Screen('FillRect', S.Window, 255, [scrsz(3)-200, 0, scrsz(3), 200])
-    Screen('FillRect', S.Window, 255, [scrsz(3)-200, scrsz(4)-200, scrsz(3), scrsz(4)])
+    if theData.oldNew(Trial)~=3
+        Screen(S.Window, 'DrawTexture', blank);
+        message = sprintf('%s Conf\n%s', Confs{theData.conf(Trial)}, Mems{theData.oldNew(Trial)});
+        DrawFormattedText(S.Window,message,'center','center',S.textColor);
+        Screen('FrameRect', S.Window, 255, [0, 0, 100, 100])
+        Screen('FrameRect', S.Window, 255, [0, scrsz(4)-100, 100, scrsz(4)])
+        Screen('FrameRect', S.Window, 255, [scrsz(3)-100, 0, scrsz(3), 100])
+        Screen('FrameRect', S.Window, 255, [scrsz(3)-100, scrsz(4)-100, scrsz(3), scrsz(4)])
+    else
+        Screen(S.Window, 'DrawTexture', blank);
+        DrawFormattedText(S.Window,'+','center','center', S.textColor);
+    end
+    
     Screen(S.Window,'Flip');
     [keys RT] = qKeys(ons_start,goTime,S.boxNum);    
     theData.stimresp{Trial} = keys;
     theData.stimRT{Trial} = RT;
     
-    % Delay
+    % Delay2
     goTime = goTime + delayTime2;
     Screen(S.Window, 'DrawTexture', blank);
     DrawFormattedText(S.Window,'+','center','center', S.textColor);

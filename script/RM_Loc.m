@@ -88,7 +88,7 @@ fileName = 'hand.jpg';
 pic = imread(fileName);
 hand = Screen(S.Window,'MakeTexture', pic);
 
-modalities = {eye, hand, fix};
+MessageCue = {'E', 'H', '+'};
 hands = {'Left','Right'};
 Confs = {'High', 'Low', '+'};
 Mems = {'Old', 'New', '+'};
@@ -167,7 +167,7 @@ if S.scanner == 1
 elseif S.scanner ==2;
     goTime = goTime + behLeadinTime;
 end
-Screen(S.Window, 'DrawTexture', blank);
+
 DrawFormattedText(S.Window,'+','center','center',S.textColor);
 Screen(S.Window,'Flip');
 qKeys(startTime,goTime,S.boxNum);
@@ -179,19 +179,14 @@ for Trial = 1:listLength
     
     % Fixation
     goTime = fixTime;
-    Screen(S.Window, 'DrawTexture', blank);
     DrawFormattedText(S.Window,'+','center','center',S.textColor);
     Screen(S.Window,'Flip');
-    [keys RT] = qKeys(ons_start,goTime,S.boxNum); 
+    qKeys(ons_start,goTime,S.boxNum); 
     
     % Modality Cue
     goTime = goTime + cueTime;
-    if theData.modality(Trial)~=3
-        Screen(S.Window, 'DrawTexture', modalities{theData.modality(Trial)});
-    else
-        Screen(S.Window, 'DrawTexture', blank);
-        DrawFormattedText(S.Window,'+','center','center', S.textColor);
-    end
+    message = MessageCue{theData.modality(Trial)};
+    DrawFormattedText(S.Window,message,'center','center',S.textColor);
     Screen(S.Window,'Flip');
     [keys RT] = qKeys(ons_start,goTime,S.boxNum);    
     theData.stimresp{Trial} = keys;
@@ -199,7 +194,6 @@ for Trial = 1:listLength
     
     % Delay
     goTime = goTime + delayTime1;
-    Screen(S.Window, 'DrawTexture', blank);
     DrawFormattedText(S.Window,'+','center','center', S.textColor);
     Screen(S.Window,'Flip');
     [keys RT] = qKeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay
@@ -209,15 +203,13 @@ for Trial = 1:listLength
     % Response
     goTime = goTime + stimTime;
     if theData.oldNew(Trial)~=3
-        Screen(S.Window, 'DrawTexture', blank);
         message = sprintf('%s Conf\n%s', Confs{theData.conf(Trial)}, Mems{theData.oldNew(Trial)});
         DrawFormattedText(S.Window,message,'center','center',S.textColor);
-        Screen('FillRect', S.Window, 255, [0, 0, 200, 200])
-        Screen('FillRect', S.Window, 255, [0, scrsz(4)-200, 200, scrsz(4)])
-        Screen('FillRect', S.Window, 255, [scrsz(3)-200, 0, scrsz(3), 200])
-        Screen('FillRect', S.Window, 255, [scrsz(3)-200, scrsz(4)-200, scrsz(3), scrsz(4)])
+        Screen('FrameRect', S.Window, 255, [0, 0, 100, 100])
+        Screen('FrameRect', S.Window, 255, [0, scrsz(4)-100, 100, scrsz(4)])
+        Screen('FrameRect', S.Window, 255, [scrsz(3)-100, 0, scrsz(3), 100])
+        Screen('FrameRect', S.Window, 255, [scrsz(3)-100, scrsz(4)-100, scrsz(3), scrsz(4)])
     else
-        Screen(S.Window, 'DrawTexture', blank);
         DrawFormattedText(S.Window,'+','center','center', S.textColor);
     end
     
@@ -228,7 +220,6 @@ for Trial = 1:listLength
     
     % Delay2
     goTime = goTime + delayTime2;
-    Screen(S.Window, 'DrawTexture', blank);
     DrawFormattedText(S.Window,'+','center','center', S.textColor);
     Screen(S.Window,'Flip');
     [keys RT] = qKeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay

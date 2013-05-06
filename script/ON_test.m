@@ -52,8 +52,8 @@ else
 end
 
 % Diagram of trial
-stimTime = 60*refreshInterval;  % the word and main response time
-respEndTime = 120 * refreshInterval;  % for running out of time
+stimTime = 180*refreshInterval;  % the word and main response time
+respEndTime = 30 * refreshInterval;  % for running out of time
 fixTime = 30* refreshInterval; % fixation time.  
 scanLeadinTime = 12*60*refreshInterval;
 modChangeTime = 6*60*refreshInterval;
@@ -88,7 +88,7 @@ fileName = 'hand.jpg';
 pic = imread(fileName);
 hand = Screen(S.Window,'MakeTexture', pic);
 
-modalities = {eye, hand};
+RMCue = {'E', 'H'};
 hands = {'Left','Right'};
 
 if S.scanner==2
@@ -110,7 +110,7 @@ end
     
 % Test stims: text cannot be preloaded, so stims will be generated on the
 % fly
-Screen(S.Window, 'DrawTexture', blank);
+
 message = 'Press g to begin!';
 [hPos, vPos] = AG3centerText(S.Window,S.screenNumber,message);
 Screen(S.Window,'DrawText',message, hPos, vPos, S.textColor);
@@ -145,7 +145,6 @@ if S.scanner==1
         if status == 0  % successful trigger otherwise try again
             break
         else
-            Screen(S.Window,'DrawTexture',blank);
             message = 'Trigger failed, "g" to retry';
             DrawFormattedText(S.Window,message,'center','center',S.textColor);
             Screen(S.Window,'Flip');
@@ -165,7 +164,7 @@ if S.scanner == 1
 elseif S.scanner ==2;
     goTime = goTime + behLeadinTime;
 end
-Screen(S.Window, 'DrawTexture', blank);
+
 DrawFormattedText(S.Window,'+','center','center',S.textColor);
 Screen(S.Window,'Flip');
 qKeys(startTime,goTime,S.boxNum);
@@ -177,10 +176,11 @@ for Trial = 1:listLength
     ons_start = GetSecs;    
     newModality = theData.modality(Trial);
     if newModality ~= oldModality;
-        Screen(S.Window, 'DrawTexture', modalities{newModality});
+        message = RMCue{theData.modality(Trial)};
+        DrawFormattedText(S.Window,message,'center','center',S.textColor);
         goTime = modChangeTime;
         Screen(S.Window,'Flip');
-        [keys RT] = qKeys(ons_start,goTime,S.boxNum); 
+        qKeys(ons_start,goTime,S.boxNum); 
     else
         goTime = 0;
     end
@@ -191,20 +191,18 @@ for Trial = 1:listLength
     
     % Fixation
     goTime = fixTime + goTime;
-    Screen(S.Window, 'DrawTexture', blank);
     DrawFormattedText(S.Window,'+','center','center',S.textColor);
     Screen(S.Window,'Flip');
     [keys RT] = qKeys(ons_start,goTime,S.boxNum); 
     
     % Stim
     goTime = goTime + stimTime;
-    Screen(S.Window, 'DrawTexture', blank);
     message = theData.item{Trial};
     DrawFormattedText(S.Window,message,'center','center',S.textColor);
-    Screen('FillRect', S.Window, 255, [0, 0, 200, 200])
-    Screen('FillRect', S.Window, 255, [0, scrsz(4)-200, 200, scrsz(4)])
-    Screen('FillRect', S.Window, 255, [scrsz(3)-200, 0, scrsz(3), 200])
-    Screen('FillRect', S.Window, 255, [scrsz(3)-200, scrsz(4)-200, scrsz(3), scrsz(4)])
+    Screen('FrameRect', S.Window, 255, [0, 0, 100, 100])
+    Screen('FrameRect', S.Window, 255, [0, scrsz(4)-100, 100, scrsz(4)])
+    Screen('FrameRect', S.Window, 255, [scrsz(3)-100, 0, scrsz(3), 100])
+    Screen('FrameRect', S.Window, 255, [scrsz(3)-100, scrsz(4)-100, scrsz(3), scrsz(4)])
     Screen(S.Window,'Flip');
     [keys RT] = qKeys(ons_start,goTime,S.boxNum);    
     theData.stimresp{Trial} = keys;
@@ -212,7 +210,6 @@ for Trial = 1:listLength
     
     % Delay
     goTime = goTime + respEndTime;
-    Screen(S.Window, 'DrawTexture', blank);
     DrawFormattedText(S.Window,'+','center','center', S.textColor);
     Screen(S.Window,'Flip');
     [keys RT] = qKeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay

@@ -130,12 +130,8 @@ elseif testType == 2
     minutes = num2str(tmp(5), '%02.0f');
     def     = {strcat(month,days,hours,minutes)};
     answer  = inputdlg(prompt,dlg_title,1,def);
-    S.edfFileBase = answer{1};
+    S.edfFile = answer{1};
     
-    S.el=EyelinkInitDefaults(S.Window);
-    
-    [v vs]=Eyelink('GetTrackerVersion');
-    fprintf('Running experiment on a ''%s'' tracker.\n', vs );
     
     for ONTestBlock = S.startBlock:5
         %listName = ['Test_List_' num2str(listNum)  '.mat'];

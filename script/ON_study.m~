@@ -38,9 +38,8 @@ scrsz = get(0,'ScreenSize');
 % Diagram of trial
 %fixTime = .5;    % not different for each trial
 %cueTime = .5;  % task cue (indoor/outdoor/male/female)
-stimTime = 1.5;  % the word
-judgeTime = 1.5; % success rating
-%imageTime = 3.5;
+stimTime = 4;  % the word
+
 blankTime = 1.5;
 %scanLeadinTime = 12;
 behLeadinTime = 4;
@@ -50,54 +49,17 @@ Screen(S.Window,'FillRect', S.screenColor);
 Screen(S.Window,'Flip');
 cd(thePath.stim);
 
-% Load fixation
-fileName = 'fix.jpg';
-pic = imread(fileName);
-fix = Screen(S.Window,'MakeTexture', pic);
-
-% Load Rate
-fileName = 'RATE.jpg';
-pic = imread(fileName);
-RATE = Screen(S.Window,'MakeTexture', pic);
-
-% Load blank
-fileName = 'blank.jpg';
-pic = imread(fileName);
-blank = Screen(S.Window,'MakeTexture', pic);
-
-
-% Load cues
-for C = 1:2
-    switch C
-        case 1  % Condition 1 = Face
-            fileName = 'PERSON.jpg';
-            pic = imread(fileName);
-            cue(C).ptr = Screen(S.Window,'MakeTexture', pic);
-            cue(C).present = 'Face';
-        case 2  % Condition 2 = Scene
-            fileName = 'SCENE.jpg';
-            pic = imread(fileName);
-            cue(C).ptr = Screen(S.Window,'MakeTexture', pic);
-            cue(C).present = 'Scene';
-    end
-end
-
-
-% study stims: text cannot be preloaded, so stims will be generated on the fly
-
-
-
 % preallocate shit:
 trialcount = 0;
-for preall = :listLength
-        theData.onset(preall) = 0;
-        theData.dur(preall) =  0;
-        theData.judgeResp{preall} = 'noanswer';
-        theData.judgeRT{preall} = 0;
-        theData.stimResp{preall} = 'noanswer';
-        theData.stimRT{preall} = 0;
-        theData.presentedTask{preall} = 'noanswer';
-        theData.confActual{preall} = 'noanswer';
+for preall = startTrial:listLength
+    theData.onset(preall) = 0;
+    theData.dur(preall) =  0;
+    theData.judgeResp{preall} = 'noanswer';
+    theData.judgeRT{preall} = 0;
+    theData.stimResp{preall} = 'noanswer';
+    theData.stimRT{preall} = 0;
+    theData.presentedTask{preall} = 'noanswer';
+    theData.confActual{preall} = 'noanswer';
 end
 
 hands = {'Left','Right'};
@@ -111,18 +73,10 @@ end
 hsn = S.encHandNum;
 % for the first block, display instructions
 if EncBlock == 1
-
-    ins_txt{1} =  sprintf('On each trial of this task, you will be asked to make judgments about whether the displayed word is abstract or concrete.  If the word is abstract, please press the %s button.  If the word is concrete please press the %s button.  Please make your response before the fixation cross appears. ', hands{hsn}, hands{3-hsn});
-
-    DrawFormattedText(S.Window, ins_txt{1},'center','center',255, 75);
+    ins_txt =  sprintf('On each trial of this task, you will be asked to make judgments about whether the displayed word is abstract or concrete.  If the word is abstract, please press the %s button.  If the word is concrete please press the %s button.  Please make your response before the fixation cross appears. ', hands{hsn}, hands{3-hsn});
+    DrawFormattedText(S.Window, ins_txt, 'center','center',255, 75);
     Screen('Flip',S.Window);
-
     AG3getKey('g',S.kbNum);
-
-%     DrawFormattedText(S.Window, ins_txt{2}, 'center', 'center', 255);
-%     Screen ('Flip', S.Window);
-% 
-%     AG3getKey('g',S.kbNum);
 end
 
 % get ready screen
@@ -180,9 +134,8 @@ Priority(MaxPriority(S.Window));
         elseif S.scanner ==2;
             goTime = goTime + behLeadinTime;
         end
-                
-        Screen(S.Window, 'DrawTexture', blank);
-        Screen(S.Window, 'DrawTexture', fix);
+         
+        DrawFormattedText(S.Window,'+','center','center',S.textColor);
         Screen(S.Window,'Flip');
         AG3recordKeys(startTime,goTime,S.kbNum);  % not collecting keys, just a delay
 
@@ -196,41 +149,19 @@ for Trial = startTrial:listLength
        
         % ITI
         goTime = blankTime;
-        Screen(S.Window, 'DrawTexture', blank);
-        Screen(S.Window, 'DrawTexture', fix);
+        DrawFormattedText(S.Window,'+','center','center',S.textColor);
         Screen(S.Window,'Flip');
         AG3recordKeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay     
         
         % Stim
         goTime = goTime + stimTime;
-        Screen(S.Window, 'DrawTexture', blank);
         stim = theData.item{Trial};
         DrawFormattedText(S.Window,stim,'center','center',S.textColor);
         Screen(S.Window,'Flip');
         [keys1 RT1] = AG3recordKeys(ons_start,goTime,S.boxNum); % not collecting keys, just a delay
-        theData.stimResp = keys1;
-        theData.stimRT = RT1;
-        
-        % Judgment
-        goTime = goTime + judgeTime;
-        Screen(S.Window, 'DrawTexture', blank);
-        Screen(S.Window,'Flip');
-        [keys2 RT2] = AG3recordKeys(ons_start,goTime,S.kbNum);  % not collecting keys, just a delay
-        theData.judgeResp = keys2;
-        theData.judgeRT = RT2;
-%         
-%         % Blink
-%         Screen(S.Window, 'DrawTexture', blank);
-%         stim = 'BLINK';
-%         DrawFormattedText(S.Window,stim,'center','center',S.textColor);
-%         Screen(S.Window,'Flip');
-%         AG3getKey('space',S.kbNum);
-
-
-            
-%         Screen(S.Window,'Flip');
-%         AG3recordKeys(ons_start,goTime,S.kbNum);  % not collecting keys, just a delay
-        
+        theData.stimResp{Trial} = keys1;
+        theData.stimRT{Trial} = RT1;
+                
         theData.dur(Trial) = GetSecs - ons_start;  %records precise trial duration
 
         cmd = ['save ' matName];

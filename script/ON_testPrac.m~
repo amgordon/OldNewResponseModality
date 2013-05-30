@@ -48,7 +48,6 @@ if S.useEL
 
 edfFile = [S.edfFileBase '_' num2str(RetBlock)];
 
-
 % open file to record data to
 trialFile = Eyelink('Openfile', edfFile);
 if trialFile~=0
@@ -105,11 +104,11 @@ end
 
 
 % Diagram of trial
-stimTime = 3;  % the word and main response time
-respEndTime = .5;  % for running out of time
-fixTime = .5; % fixation time.  
+stimTime = .3;  % the word and main response time
+respEndTime = .05;  % for running out of time
+fixTime = .05; % fixation time.  
 scanLeadinTime = 12;
-modChangeTime = 4;
+modChangeTime = 6;
 behLeadinTime = 4;
 
 centerX = S.myRect(3)/2;
@@ -154,7 +153,7 @@ hsn = S.retHandNum;
 
 % for the first block, display instructions
 if RetBlock == 1
-    ins_txt{1} = sprintf('During this phase of the study, you will view a series of words and will be asked to report your confidence concerning whether each word is "Old" (you encountered it in the first phase) or "New" (you did not encounter it in the first phase).  \n \n For some blocks of trials, preceded by an E, you will respond by moving your eyes to one of four corners of the screen.  For other blocks, preceded by an H, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n High confident new word = pinky finger, top square.  \n  Low confident new word = ring finger, right square. \n  Low confident old word = middle finger, bottom square. \n High confident old word = pointer finger, left square.    \n \n Please make your response as quickly and as accurately as possible.');
+    ins_txt{1} = sprintf('During each trial of this phase of the study, you will be given a confidence rating, and you will be asked to identify the correct response for that rating using either your eyes or your hands.  \n \n For some blocks of trials, preceded by an E, you will respond by moving your eyes to one of four corners of the screen.  For other blocks, preceded by an H, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n High confident new word = pinky finger, top left corner.  \n  Low confident new word = ring finger, top right corner. \n  Low confident old word = middle finger, bottom right corner. \n High confident old word = pointer finger, bottom left corner.    \n \n Please make your response as quickly and as accurately as possible.');
     DrawFormattedText(S.Window, ins_txt{1},'center','center',255, 75);
     Screen('Flip',S.Window);
     AG3getKey('g',S.kbNum);
@@ -163,10 +162,7 @@ end
     
 % Test stims: text cannot be preloaded, so stims will be generated on the
 % fly
-a = get(0,'MonitorPositions');
-S.scrsz = a(1,:);
-S.scrsz(2) = 1;
-%S.scrsz = get(S.screenNumber,'ScreenSize');
+
 message = 'Press g to begin!';
 [hPos, vPos] = AG3centerText(S.Window,S.screenNumber,message);
 Screen(S.Window,'DrawText',message, hPos, vPos, S.textColor);
@@ -175,14 +171,14 @@ Screen(S.Window,'Flip');
 % save output file
 cd(S.subData);
 
-matName = ['Test_' num2str(sNum), '_' sName 'out(1).mat'];
+matName = ['Acc1_retrieve_' num2str(sNum), '_' sName 'out(1).mat'];
 
 checkEmpty = isempty(dir (matName));
 suffix = 1;
 
 while checkEmpty ~=1
     suffix = suffix+1;
-    matName = ['Test_' num2str(sNum), '_' sName 'out(' num2str(suffix) ').mat'];
+    matName = ['Acc1_retrieve_' num2str(sNum), '_' sName 'out(' num2str(suffix) ').mat'];
     checkEmpty = isempty(dir (matName));
 end
 
@@ -284,10 +280,10 @@ for Trial = 1:listLength
     message = theData.item{Trial};
     DrawFormattedText(S.Window,message,'center','center',S.textColor);
     if ~strcmp(message, '+')
-        Screen('FrameRect', S.Window, 255, S.topSquare)
-        Screen('FrameRect', S.Window, 255, S.rightSquare )
-        Screen('FrameRect', S.Window, 255, S.bottomSquare )
-        Screen('FrameRect', S.Window, 255, S.leftSquare )
+        Screen('FrameRect', S.Window, 255, [0, 0, S.respSquareLength, S.respSquareLength])
+        Screen('FrameRect', S.Window, 255, [0, S.scrsz(4)-S.respSquareLength, S.respSquareLength, S.scrsz(4)])
+        Screen('FrameRect', S.Window, 255, [S.scrsz(3)-S.respSquareLength, 0, S.scrsz(3), S.respSquareLength])
+        Screen('FrameRect', S.Window, 255, [S.scrsz(3)-S.respSquareLength, S.scrsz(4)-S.respSquareLength, S.scrsz(3), S.scrsz(4)])
     end
     Screen(S.Window,'Flip');
     [keys RT] = qKeys(ons_start,goTime,S.boxNum);

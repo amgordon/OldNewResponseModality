@@ -8,8 +8,11 @@ if nargin == 0
     error('Must specify thePath')
 end
 
+sName = 'xxxxxxx';
 if nargin<2
-    sName = input('Enter date (e.g. ''11Feb09'') ','s');
+    while (length(sName) > 4)
+    sName = input('Enter name, max 4 chars (e.g. ''AG'') ','s');
+    end
 end
 
 if nargin<3
@@ -18,8 +21,8 @@ end
 
 if nargin<4
     testType = 0;
-    while ~ismember(testType,[1,2,3])
-        testType = input('Which task?  ON_S[1] ON_T[2] or ON_L[3]? ');
+    while ~ismember(testType,[1,2,3,4])
+        testType = input('Which task?  ON_S[1] ON_TPrac[2] ON_T[3] or ON_L[4]? ');
     end
 end
 
@@ -43,7 +46,7 @@ end
 
 S.subData = fullfile(thePath.data, [sName '_' num2str(sNum)]);
 if ~exist(S.subData)
-   mkdir(S.subData); 
+    mkdir(S.subData);
 end
 
 % Set input device (keyboard or buttonbox)
@@ -86,7 +89,24 @@ Screen('TextSize', S.Window, 30);
 % oldFont = Screen('TextFont', S.Window, 'Geneva')
 Screen('TextStyle', S.Window, 1);
 S.on = 1;  % Screen now on
+S.respSquareLength = 20;
 
+scr_h = get(0,'MonitorPositions');
+S.scrsz = scr_h(1,:);
+S.scrsz(2) = 1;
+
+radius = round(.8*min(S.scrsz(3:4)));
+
+S.bottomSquare = [(S.scrsz(3)-S.respSquareLength)/2, (S.scrsz(4)+radius-S.respSquareLength)/2, (S.scrsz(3)+S.respSquareLength)/2, (S.scrsz(4)+radius+S.respSquareLength)/2];
+S.rightSquare = [(S.scrsz(3)+radius-S.respSquareLength)/2, (S.scrsz(4)-S.respSquareLength)/2, (S.scrsz(3)+radius+S.respSquareLength)/2, (S.scrsz(4)+S.respSquareLength)/2];
+S.topSquare = [(S.scrsz(3)-S.respSquareLength)/2, (S.scrsz(4)-radius-S.respSquareLength)/2, (S.scrsz(3)+S.respSquareLength)/2, (S.scrsz(4)-radius+S.respSquareLength)/2];
+S.leftSquare = [(S.scrsz(3)-radius-S.respSquareLength)/2, (S.scrsz(4)-S.respSquareLength)/2, (S.scrsz(3)-radius+S.respSquareLength)/2, (S.scrsz(4)+S.respSquareLength)/2];
+
+if ismember(S.scanner, [1,4])
+    S.useEL = 1;
+else
+    S.useEL = 0;
+end
 
 if testType == 1
     saveName = ['ONRMStudy' sName '_' num2str(sNum) '.mat'];
@@ -100,82 +120,134 @@ if testType == 1
     suffix = 1;
     
     while checkEmpty ~=1
-    suffix = suffix+1;
-    saveName = ['ONRMStudy_' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
-    checkEmpty = isempty(dir (saveName));
+        suffix = suffix+1;
+        saveName = ['ONRMStudy_' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
+        checkEmpty = isempty(dir (saveName));
     end
-
+    
     eval(['save ' saveName]);
     % Output file for each block is saved within BH1test; full file saved
     % here
-
+    
 elseif testType == 2
     saveName = ['ONRMTest' sName '_' num2str(sNum) '.mat'];
-
-    if Eyelink('initialize') ~= 0
-        fprintf('error in connecting to the eye tracker\n\n');
-        return;
+    
+    if S.useEL
+        if Eyelink('initialize') ~= 0
+            fprintf('error in connecting to the eye tracker\n\n');
+            return;
+        end
+        
+        S.edfFileBase = [sName '_P'];
+        
+        S.el=EyelinkInitDefaults(S.Window);
+        
+        [v vs]=Eyelink('GetTrackerVersion');
+        fprintf('Running experiment on a ''%s'' tracker.\n', vs );
     end
     
-    % STEP 2
-    % Added a dialog box to set your own EDF file name before opening
-    % experiment graphics. Make sure the entered EDF file name is 1 to 8
-    % characters in length and only numbers or letters are allowed.
-    prompt = {'Enter tracker EDF file name (Max 8 characters, only letters and numerals)'};
-    dlg_title = 'Create EDF file';
-    tmp = clock;
-    month = num2str(tmp(2), '%02.0f');
-    days = num2str(tmp(3), '%02.0f');
-    hours = num2str(tmp(4), '%02.0f');
-    minutes = num2str(tmp(5), '%02.0f');
-    def     = {strcat(month,days,hours,minutes)};
-    answer  = inputdlg(prompt,dlg_title,1,def);
-    S.edfFileBase = answer{1};
+
+    listName = 'practiceTestList';
+    ONPracTestData = ON_testPrac(thePath,listName,sName,sNum,1, S);
     
-    S.el=EyelinkInitDefaults(S.Window);
     
-    [v vs]=Eyelink('GetTrackerVersion');
-    fprintf('Running experiment on a ''%s'' tracker.\n', vs );
+    checkEmpty = isempty(dir (saveName));
+    suffix = 1;
+    
+    while checkEmpty ~=1
+        suffix = suffix+1;
+        saveName = ['AG3_ONTestPractice_' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
+        checkEmpty = isempty(dir (saveName));
+    end
+    
+    eval(['save ' saveName]);
+    
+    if S.useEL
+        Eyelink('ShutDown');
+    end
+    % Output file for each block is saved within BH1test; full file saved
+    % here
+    
+elseif testType == 3
+    saveName = ['ONRMTest' sName '_' num2str(sNum) '.mat'];
+    
+    if S.useEL
+        if Eyelink('initialize') ~= 0
+            fprintf('error in connecting to the eye tracker\n\n');
+            return;
+        end
+        
+        S.edfFileBase = [sName '_T'];
+        
+        S.el=EyelinkInitDefaults(S.Window);
+        
+        [v vs]=Eyelink('GetTrackerVersion');
+        fprintf('Running experiment on a ''%s'' tracker.\n', vs );
+    end
     
     for ONTestBlock = S.startBlock:5
         %listName = ['Test_List_' num2str(listNum)  '.mat'];
         listName = ['160_words_Test_List_' num2str(mod(sNum,16)) '_' num2str(ONTestBlock) '.mat'];
         ONTestData(ONTestBlock) = ON_test(thePath,listName,sName,sNum,ONTestBlock, S);
     end
-
+    
     checkEmpty = isempty(dir (saveName));
     suffix = 1;
-
+    
     while checkEmpty ~=1
         suffix = suffix+1;
         saveName = ['AG3_ONTest_' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
         checkEmpty = isempty(dir (saveName));
     end
-
+    
     eval(['save ' saveName]);
+    
+    if S.useEL
+        Eyelink('ShutDown');
+    end
     % Output file for each block is saved within BH1test; full file saved
     % here
     
-elseif testType == 3
     
-    saveName = ['RMLoc' sName '_' num2str(sNum) '.mat'];
-
-    for RMLocBlock = S.startBlock:2
+elseif testType == 4
+        saveName = ['RMLoc' sName '_' num2str(sNum) '.mat'];
+    
+    if S.useEL
+        if Eyelink('initialize') ~= 0
+            fprintf('error in connecting to the eye tracker\n\n');
+            return;
+        end
+        
+        S.edfFileBase = [sName '_L'];
+        
+        S.el=EyelinkInitDefaults(S.Window);
+        
+        [v vs]=Eyelink('GetTrackerVersion');
+        fprintf('Running experiment on a ''%s'' tracker.\n', vs );
+    end
+    
+    for RMLocBlock = S.startBlock:3
         %listName = ['Test_List_' num2str(listNum)  '.mat'];
         listName = ['RM_List_' num2str(mod(sNum,16)) '_' num2str(RMLocBlock) '.mat'];
         RMLocData(RMLocBlock) = RM_Loc(thePath,listName,sName,sNum,RMLocBlock, S);
     end
 
+   
     checkEmpty = isempty(dir (saveName));
     suffix = 1;
-
+    
     while checkEmpty ~=1
         suffix = suffix+1;
-        saveName = ['RMLoc' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
+        saveName = ['RMLoc_' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
         checkEmpty = isempty(dir (saveName));
     end
-
+    
     eval(['save ' saveName]);
+    
+    if S.useEL
+        Eyelink('ShutDown');
+    end
+
 end
 
 message = 'End of script. Press any key to exit.';

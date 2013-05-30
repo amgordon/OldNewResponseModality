@@ -8,10 +8,6 @@ function theData = AG3retrieve(thePath,listName,sName, sNum,RetBlock, S)
 % theData = AG3retrieve(thePath,listName,'testSub',0);
 
 
-refreshInterval= Screen('GetFlipInterval', S.Window);
-
-% ListenChar(2); %suppress display of keypresses to command window.
-
 cd(thePath.list);
 
 list = load(listName);
@@ -23,10 +19,9 @@ theData.modality = [list.testList{:,4}];
 
 listLength = length(theData.item);
 
-scrsz = get(0,'ScreenSize');
+
 
 % preallocate:
-trialcount = 0;
 for preall = 1:listLength 
     theData.onset(preall) = 0;
     theData.dur(preall) =  0;
@@ -41,28 +36,17 @@ for preall = 1:listLength
     theData.respActual{preall} = 'noanswer';
 end
 
-if isfield(S, 'boxType')
-    if strcmp (S.boxType, 'handBox')
-        fingerOrder = {{'1' '2' '3'} {'4' '5'}};
-    elseif strcmp(S.boxType, 'squareBox')
-        fingerOrder = {{'8' '9' '4'} {'6' '7'}};
-    end
-else
-    fingerOrder = {{'1' '2' '3'} {'4' '5'}};
-end
 
-if ismember(S.scanner, [4])
-    
-    
+
+
+if S.useEL  
     % STEP 4
 % Provide Eyelink with details about the graphics environment
 % and perform some initializations. The information is returned
 % in a structure that also contains useful defaults
 % and control codes (e.g. tracker state bit and Eyelink key values).
-el=EyelinkInitDefaults(S.Window);
 
-[v vs]=Eyelink('GetTrackerVersion');
-fprintf('Running experiment on a ''%s'' tracker.\n', vs );
+edfFile = [S.edfFileBase '_' num2str(RetBlock)];
 
 % open file to record data to
 trialFile = Eyelink('Openfile', edfFile);
@@ -90,11 +74,6 @@ Eyelink('message', 'DISPLAY_COORDS %ld %ld %ld %ld', 0, 0, width-1, height-1);
 Eyelink('command', 'calibration_type = HV9');
 % determines how many dots we will be using for calibration , set in calibr.ini
 
-% set parser (conservative saccade thresholds)
-%     Eyelink('command', 'saccade_velocity_threshold = 35');
-%     Eyelink('command', 'saccade_acceleration_threshold = 9500');
-% %   this is just to show that you can change thresholds for what qualifie as saccade - changes info in some ini file on host computer
-
 % set EDF file contents
 Eyelink('command', 'file_event_filter = LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON');
 % choosing the info that is written to each column of edf file - here
@@ -113,12 +92,7 @@ Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,STATUS');
 % allow to use the big button on the eyelink gamepad to accept the
 % calibration/drift correction target
 Eyelink('command', 'button_function 5 "accept_target_fixation"');
-% can use the gamepad to dismiss/confirm drift check (can check gamepad
-% keynums on host computer by going to Offline mode and pressing buttons.
 
-% If interested in other preferences, to get a list either
-% 1) look through each ini file on host computer (c:\elcl\exe) or
-% 2) look into log files for a given session (same directory)
 
 % make sure we're still connected to eyetracker
 if Eyelink('IsConnected')~=1
@@ -130,12 +104,12 @@ end
 
 
 % Diagram of trial
-stimTime = 180*refreshInterval;  % the word and main response time
-respEndTime = 30 * refreshInterval;  % for running out of time
-fixTime = 30* refreshInterval; % fixation time.  
-scanLeadinTime = 12*60*refreshInterval;
-modChangeTime = 6*60*refreshInterval;
-behLeadinTime = 4*60*refreshInterval;
+stimTime = 3;  % the word and main response time
+respEndTime = .5;  % for running out of time
+fixTime = .5; % fixation time.  
+scanLeadinTime = 12;
+modChangeTime = 6;
+behLeadinTime = 4;
 
 centerX = S.myRect(3)/2;
 centerY = S.myRect(4)/2 - 12; 
@@ -179,7 +153,7 @@ hsn = S.retHandNum;
 
 % for the first block, display instructions
 if RetBlock == 1
-    ins_txt{1} = sprintf('During this phase of the study, you will view a series of words and will be asked to report your confidence concerning whether each word is "Old" (you encountered it in the first phase) or "New" (you did not encounter it in the first phase).  \n \n High confident new word = pinky finger.  \n  Low confident new word = ring finger. \n  Low confident old word = middle finger. \n High confident old word = pointer finger.   \n Remember word = thumb.  \n \n Please make your response as quickly and as accurately as possible.  You can respond anytime until you see the blink symbol: [].  Please try to avoid blinking when the blink symbol [] is not on the screen.  When you see the [], please blink.');
+    ins_txt{1} = sprintf('During this phase of the study, you will view a series of words and will be asked to report your confidence concerning whether each word is "Old" (you encountered it in the first phase) or "New" (you did not encounter it in the first phase).  \n \n High confident new word = pinky finger, top left corner.  \n  Low confident new word = ring finger, top right corner. \n  Low confident old word = middle finger, bottom right corner. \n High confident old word = pointer finger, bottom left corner.    \n \n Please make your response as quickly and as accurately as possible.');
     DrawFormattedText(S.Window, ins_txt{1},'center','center',255, 55);
     Screen('Flip',S.Window);
     AG3getKey('g',S.kbNum);
@@ -249,71 +223,9 @@ qKeys(startTime,goTime,S.boxNum);
 
 oldModality = -1;
 
-for Trial = 1:4%listLength
+for Trial = 1:10%listLength
     
     ons_start = GetSecs;
-    
-    if ismember(S.scanner, [4])
-        % STEP 7.1
-        % Sending a 'TRIALID' message to mark the start of a trial in Data
-        % Viewer.  This is different than the start of recording message
-        % START that is logged when the trial recording begins. The viewer
-        % will not parse any messages, events, or samples, that exist in
-        % the data file prior to this message.
-        Eyelink('Message', 'TRIALID %d', Trial);
-        timepoints(Trial,2)  =  GetSecs;
-        % This supplies the title at the bottom of the eyetracker display
-        Eyelink('command', 'record_status_message "TRIAL %d/%d"', Trial, listLength);
-        % Before recording, we place reference graphics on the host display
-        timepoints(Trial,3)  =  GetSecs;
-        %tell me what trial just started (to matlab command line)
-        fprintf('trial # %i of %i\n', Trial, listLength)
-        timepoints(Trial,4)  =  GetSecs;
-        % STEP 7.3
-        % start recording eye position (preceded by a short pause so that
-        % the tracker can finish the mode transition - used mainly if we're doing driftcorrection)
-        % The paramerters for the 'StartRecording' call controls the
-        % file_samples, file_events, link_samples, link_events availability
-        Eyelink('Command', 'set_idle_mode');
-        timepoints(Trial,5)  =  GetSecs;
-        WaitSecs(0.05);
-        timepoints(Trial,6)  =  GetSecs;
-        
-        Eyelink('StartRecording', 1, 1, 1, 1);
-        Eyelink('Message', '!V TRIAL_VAR category %s', 'object');
-%         Eyelink('Message', '!V TRIAL_VAR whetherwithmask %s', num2str(blankDur));
-%         if thepic<=9
-%             Eyelink('Message', '!V TRIAL_VAR whichimage %s%s',num2str(0), num2str(thepic));
-%         elseif thepic>=10
-%             Eyelink('Message', '!V TRIAL_VAR whichimage %s', num2str(thepic));
-%         end
-%         Eyelink('Message', '!V TRIAL_VAR whichAxis %s', num2str(whichStimuli));
-%         Eyelink('Message', '!V TRIAL_VAR whichSequence %s', num2str(sequentCode));
-        timepoints(Trial,7)  =  GetSecs;
-        % record a few samples before we actually start displaying
-        % otherwise you may lose a few msec of data
-        
-        
-        % mark zero-plot time in data file
-        Eyelink('Message', 'image_start');
-        
-%         Eyelink('Message', '!V IAREA FILE InterestAreas/%s.ias', itemlist{thepic});
-        
-        
-        
-        'endpoint7.1.4'
-        % Send an integration message so that an image can be loaded as
-        % overlay backgound when performing Data Viewer analysis.  This
-        % message can be placed anywhere within the scope of a trial (i.e.,
-        % after the 'TRIALID' message and before 'TRIAL_RESULT')
-        % See "Protocol for EyeLink Data to Viewer Integration -> Image
-        % Commands" section of the EyeLink Data Viewer User Manual.
-        %Eyelink('Message', '!V IMGLOAD CENTER %s%s%s%s %d %d %d %d', 'axis',num2str(whichStimuli),'/',itemlist{thepic}, 800, 600, 800, 600 );
-        %Eyelink('Message', '-%d !V IAREA FILE /InterestAreas/%s.ias', n,
-        %note that '!V' indicates a message to DataViewer (see chp. 7 Eyelink Data Vierwer user's manual 'Protocol for eyelink to dataviwer integration')
-        
-        
-    end
     
     newModality = theData.modality(Trial);
     if newModality ~= oldModality;
@@ -321,12 +233,39 @@ for Trial = 1:4%listLength
         DrawFormattedText(S.Window,message,'center','center',S.textColor);
         goTime = modChangeTime;
         Screen(S.Window,'Flip');
-        qKeys(ons_start,goTime,S.boxNum); 
+        qKeys(ons_start,goTime,S.boxNum);
     else
         goTime = 0;
     end
     oldModality = newModality;
     
+    if S.useEL
+        % STEP 7.1
+        % Sending a 'TRIALID' message to mark the start of a trial in Data
+        % Viewer.  This is different than the start of recording message
+        % START that is logged when the trial recording begins. The viewer
+        % will not parse any messages, events, or samples, that exist in
+        % the data file prior to this message.
+        Eyelink('Message', 'TRIALID %d', Trial);
+
+        % This supplies the title at the bottom of the eyetracker display
+        Eyelink('command', 'record_status_message "TRIAL %d/%d"', Trial, listLength);
+        % Before recording, we place reference graphics on the host display
+
+        %tell me what trial just started (to matlab command line)
+        fprintf('trial # %i of %i\n', Trial, listLength)
+
+        % STEP 7.3
+        % start recording eye position (preceded by a short pause so that
+        % the tracker can finish the mode transition - used mainly if we're doing driftcorrection)
+        % The paramerters for the 'StartRecording' call controls the
+        % file_samples, file_events, link_samples, link_events availability
+        Eyelink('Command', 'set_idle_mode');
+        
+        Eyelink('StartRecording', 1, 1, 1, 1);           
+      
+    end
+        
     
     theData.onset(Trial) = GetSecs - startTime; %precise onset of trial presentation
     
@@ -340,12 +279,14 @@ for Trial = 1:4%listLength
     goTime = goTime + stimTime;
     message = theData.item{Trial};
     DrawFormattedText(S.Window,message,'center','center',S.textColor);
-    Screen('FrameRect', S.Window, 255, [0, 0, 100, 100])
-    Screen('FrameRect', S.Window, 255, [0, scrsz(4)-100, 100, scrsz(4)])
-    Screen('FrameRect', S.Window, 255, [scrsz(3)-100, 0, scrsz(3), 100])
-    Screen('FrameRect', S.Window, 255, [scrsz(3)-100, scrsz(4)-100, scrsz(3), scrsz(4)])
+    if ~strcmp(message, '+')
+        Screen('FrameRect', S.Window, 255, [0, 0, S.respSquareLength, S.respSquareLength])
+        Screen('FrameRect', S.Window, 255, [0, S.scrsz(4)-S.respSquareLength, S.respSquareLength, S.scrsz(4)])
+        Screen('FrameRect', S.Window, 255, [S.scrsz(3)-S.respSquareLength, 0, S.scrsz(3), S.respSquareLength])
+        Screen('FrameRect', S.Window, 255, [S.scrsz(3)-S.respSquareLength, S.scrsz(4)-S.respSquareLength, S.scrsz(3), S.scrsz(4)])
+    end
     Screen(S.Window,'Flip');
-    [keys RT] = qKeys(ons_start,goTime,S.boxNum);    
+    [keys RT] = qKeys(ons_start,goTime,S.boxNum);
     theData.stimresp{Trial} = keys;
     theData.stimRT{Trial} = RT;
     
@@ -362,9 +303,8 @@ for Trial = 1:4%listLength
     theData.dur(Trial) = GetSecs - ons_start;  %records precise trial duration
     
 
-    if S.scanner == 4
+    if S.useEL
         Eyelink('StopRecording');
-        
         Eyelink('Message', 'TRIAL_RESULT 0');
     end
     cmd = ['save ' matName];
@@ -378,31 +318,30 @@ DrawFormattedText(S.Window,'Saving...','center','center', [100 100 100]);
 cmd = ['save ' matName];
 eval(cmd);
 
-    %% shut down eyetracker
-Eyelink('Command', 'set_idle_mode');
-WaitSecs(0.5);
-Eyelink('CloseFile');
-
-% download data file
-cd (S.subData)
-try
-    fprintf('Receiving data file ''%s''\n', edfFile );
-    status=Eyelink('ReceiveFile');
-    if status > 0
-        fprintf('ReceiveFile status %d\n', status);
+%% shut down eyetracker
+if S.useEL
+    Eyelink('Command', 'set_idle_mode');
+    WaitSecs(0.5);
+    Eyelink('CloseFile');
+    
+    
+    % download data file
+    cd (S.subData)
+    try
+        fprintf('Receiving data file ''%s''\n', edfFile );
+        status=Eyelink('ReceiveFile');
+        if status > 0
+            fprintf('ReceiveFile status %d\n', status);
+        end
+        if 2==exist(edfFile, 'file')
+            fprintf('Data file ''%s'' can be found in ''%s''\n', edfFile, pwd );
+        end
+    catch ME1
+        fprintf('Problem receiving data file ''%s''\n', edfFile );
     end
-    if 2==exist(edfFile, 'file')
-        fprintf('Data file ''%s'' can be found in ''%s''\n', edfFile, pwd );
-    end
-catch ME1
-    fprintf('Problem receiving data file ''%s''\n', edfFile );
+    
 end
 
-
-%close the eye tracker.
-Eyelink('ShutDown');
-%fprintf(['\npct correct = ' num2str(res.pctCor)]);
-%fprintf(['\npct legit = ' num2str(res.pctLegit)]);
 
 Screen(S.Window,'FillRect', S.screenColor);	% Blank Screen
 Screen(S.Window,'Flip');

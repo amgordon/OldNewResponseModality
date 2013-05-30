@@ -12,13 +12,10 @@ cd(thePath.list);
 
 list = load(listName);
 
-theData.item = list.testList(:,1);
-theData.oldNew = [list.testList{:,3}];
-theData.absCon = [list.testList{:,2}];
-theData.modality = [list.testList{:,4}];
+theData.item = list.RMList(:,1);
+theData.modality = [list.RMList{:,2}];
 
 listLength = length(theData.item);
-
 
 
 % preallocate:
@@ -47,7 +44,6 @@ if S.useEL
 % and control codes (e.g. tracker state bit and Eyelink key values).
 
 edfFile = [S.edfFileBase '_' num2str(RetBlock)];
-
 
 % open file to record data to
 trialFile = Eyelink('Openfile', edfFile);
@@ -154,7 +150,7 @@ hsn = S.retHandNum;
 
 % for the first block, display instructions
 if RetBlock == 1
-    ins_txt{1} = sprintf('During this phase of the study, you will view a series of words and will be asked to report your confidence concerning whether each word is "Old" (you encountered it in the first phase) or "New" (you did not encounter it in the first phase).  \n \n For some blocks of trials, preceded by an E, you will respond by moving your eyes to one of four corners of the screen.  For other blocks, preceded by an H, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n High confident new word = pinky finger, top square.  \n  Low confident new word = ring finger, right square. \n  Low confident old word = middle finger, bottom square. \n High confident old word = pointer finger, left square.    \n \n Please make your response as quickly and as accurately as possible.');
+    ins_txt{1} = sprintf('During each trial of this phase of the study, you will be given a confidence rating, and you will be asked to identify the correct response for that rating using either your eyes or your hands.  \n \n For EYE blocks of trials, preceded by an E, you will respond by moving your eyes to one of four squares diplayed on the screen.  For HAND blocks, preceded by an H, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n HC NEW = pinky finger, top square.  \n  LC NEW = ring finger, right square. \n  LC OLD = middle finger, bottom square. \n HC OLD = pointer finger, left square.    \n \n Please make your response as quickly and as accurately as possible.');
     DrawFormattedText(S.Window, ins_txt{1},'center','center',255, 75);
     Screen('Flip',S.Window);
     AG3getKey('g',S.kbNum);
@@ -163,10 +159,7 @@ end
     
 % Test stims: text cannot be preloaded, so stims will be generated on the
 % fly
-a = get(0,'MonitorPositions');
-S.scrsz = a(1,:);
-S.scrsz(2) = 1;
-%S.scrsz = get(S.screenNumber,'ScreenSize');
+
 message = 'Press g to begin!';
 [hPos, vPos] = AG3centerText(S.Window,S.screenNumber,message);
 Screen(S.Window,'DrawText',message, hPos, vPos, S.textColor);
@@ -175,14 +168,14 @@ Screen(S.Window,'Flip');
 % save output file
 cd(S.subData);
 
-matName = ['Test_' num2str(sNum), '_' sName 'out(1).mat'];
+matName = ['practiceTest' num2str(sNum), '_' sName 'out(1).mat'];
 
 checkEmpty = isempty(dir (matName));
 suffix = 1;
 
 while checkEmpty ~=1
     suffix = suffix+1;
-    matName = ['Test_' num2str(sNum), '_' sName 'out(' num2str(suffix) ').mat'];
+    matName = ['practiceTest_' num2str(sNum), '_' sName 'out(' num2str(suffix) ').mat'];
     checkEmpty = isempty(dir (matName));
 end
 

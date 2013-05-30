@@ -4,6 +4,7 @@ testTotalLength = 320;
 numLists = 8;
 numSess = 5;
 numItems = 64;
+nItemsPerBlock = 4;
 
 for i = 1:numLists;
     thisShuffleIdx = randperm(testTotalLength);
@@ -27,7 +28,7 @@ for i = 1:numLists;
         absCon{testSessLength} = 0;
         oldNew(testSessLength) = 0;
         
-        modality = 2 - mod(ceil((1:(length(oldNew)))/16),2);
+        modality = 2 - mod(ceil((1:(length(oldNew)))/nItemsPerBlock),2);
         
         testList = [wordList' absCon' num2cell(oldNew') num2cell(modality)'];
         save (sprintf('160_words_Test_List_%g_%g', i,j), 'testList' );

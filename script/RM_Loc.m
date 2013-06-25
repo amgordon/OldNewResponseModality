@@ -21,7 +21,7 @@ list = load(listName);
 
 theData.item = list.locList(:,1);
 theData.modality = list.locList(:,2);
-theData.dur = list.locList(:,2);
+theData.desiredDur = list.locList(:,3);
 
 listLength = length(theData.item);
 
@@ -293,7 +293,7 @@ for Trial = 1:listLength
         goTime = goTime + stimTime;
     else
         %goTime = goTime + stimTime;
-        goTime = goTime + theData.dur(Trial) - respEndTime - fixTime;
+        goTime = goTime + theData.desiredDur(Trial) - respEndTime - fixTime;
     end
     Screen(S.Window,'Flip');
     [keys RT] = qkeys(ons_start,goTime,S.boxNum);

@@ -119,7 +119,7 @@ if testType == 1
     saveName = ['ONRMStudy' sName '_' num2str(sNum) '.mat'];
     
     for RespSelBlock = 1
-        listName = sprintf('160_words_Study_List_%g.mat', mod(sNum, 16));
+        listName = sprintf('192_words_Study_List_%g.mat', mod(sNum, 16));
         respSelData(RespSelBlock) = ON_study(thePath,listName,sName,sNum,S,RespSelBlock, 1);
     end
     
@@ -137,15 +137,13 @@ if testType == 1
     % here
     
 elseif testType == 2
-    saveName = ['ONRMTest' sName '_' num2str(sNum) '.mat'];
-    
-    if S.useEL
+      if S.useEL
         if Eyelink('initialize') ~= 0
             fprintf('error in connecting to the eye tracker\n\n');
             return;
         end
         
-        S.edfFileBase = [sName '_P'];
+        S.edfFileBase = [sName '_L'];
         
         S.el=EyelinkInitDefaults(S.Window);
         
@@ -153,17 +151,19 @@ elseif testType == 2
         fprintf('Running experiment on a ''%s'' tracker.\n', vs );
     end
     
+    for RMLocBlock = S.startBlock:3
+        %listName = ['Test_List_' num2str(listNum)  '.mat'];
+        listName = ['RM_Loc_List_' num2str(1+mod(sNum,16)) '_' num2str(RMLocBlock) '.mat'];
+        testPracData(RMLocBlock) = RM_Loc(thePath,listName,sName,sNum,RMLocBlock, S);
+    end
 
-    listName = 'practiceTestList';
-    ONPracTestData = ON_testPrac(thePath,listName,sName,sNum,1, S);
-    
-    
+   
     checkEmpty = isempty(dir (saveName));
     suffix = 1;
     
     while checkEmpty ~=1
         suffix = suffix+1;
-        saveName = ['AG3_ONTestPractice_' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
+        saveName = ['testPrac_' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
         checkEmpty = isempty(dir (saveName));
     end
     
@@ -172,8 +172,6 @@ elseif testType == 2
     if S.useEL
         Eyelink('ShutDown');
     end
-    % Output file for each block is saved within BH1test; full file saved
-    % here
     
 elseif testType == 3
     saveName = ['ONRMTest' sName '_' num2str(sNum) '.mat'];
@@ -192,9 +190,9 @@ elseif testType == 3
         fprintf('Running experiment on a ''%s'' tracker.\n', vs );
     end
     
-    for ONTestBlock = S.startBlock:5
+    for ONTestBlock = S.startBlock:6
         %listName = ['Test_List_' num2str(listNum)  '.mat'];
-        listName = ['160_words_Test_List_' num2str(mod(sNum,16)) '_' num2str(ONTestBlock) '.mat'];
+        listName = ['192_words_Test_List_' num2str(mod(sNum,16)) '_' num2str(ONTestBlock) '.mat'];
         ONTestData(ONTestBlock) = ON_test(thePath,listName,sName,sNum,ONTestBlock, S);
     end
     
@@ -233,7 +231,7 @@ elseif testType == 4
         fprintf('Running experiment on a ''%s'' tracker.\n', vs );
     end
     
-    for RMLocBlock = S.startBlock:3
+    for RMLocBlock = S.startBlock:4
         %listName = ['Test_List_' num2str(listNum)  '.mat'];
         listName = ['RM_Loc_List_' num2str(mod(sNum,16)) '_' num2str(RMLocBlock) '.mat'];
         RMLocData(RMLocBlock) = RM_Loc(thePath,listName,sName,sNum,RMLocBlock, S);

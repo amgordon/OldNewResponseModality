@@ -16,6 +16,7 @@ theData.item = list.testList(:,1);
 theData.oldNew = [list.testList{:,3}];
 theData.absCon = [list.testList{:,2}];
 theData.modality = [list.testList{:,4}];
+theData.desiredDur = cell2mat(list.testList(:,5));
 
 listLength = length(theData.item);
 
@@ -226,7 +227,8 @@ Screen(S.Window,'Flip');
 qkeys(startTime,goTime,S.boxNum);
 
 oldModality = -1;
-
+ons_init = GetSecs;
+cumulativeCueTime = 0;
 for Trial = 1:listLength
     
     ons_start = GetSecs;
@@ -238,6 +240,7 @@ for Trial = 1:listLength
         goTime = modChangeTime;
         Screen(S.Window,'Flip');
         qkeys(ons_start,goTime,S.boxNum);
+        cumulativeCueTime = cumulativeCueTime + modChangeTime;
     else
         goTime = 0;
     end
@@ -280,7 +283,7 @@ for Trial = 1:listLength
     [keys RT] = qkeys(ons_start,goTime,S.boxNum); 
     
     % Stim
-    goTime = goTime + stimTime;
+    
     message = theData.item{Trial};
     DrawFormattedText(S.Window,message,'center','center',S.textColor);
     if ~strcmp(message, '+')
@@ -288,6 +291,9 @@ for Trial = 1:listLength
         Screen('FrameRect', S.Window, 255, S.topLeftSquare )
         Screen('FrameRect', S.Window, 255, S.bottomRightSquare )
         Screen('FrameRect', S.Window, 255, S.bottomLeftSquare )
+        goTime = goTime + stimTime;
+    else
+        goTime = goTime + theData.desiredDur(Trial) - respEndTime - fixTime;
     end
     Screen(S.Window,'Flip');
     [keys RT] = qkeys(ons_start,goTime,S.boxNum);
@@ -295,17 +301,15 @@ for Trial = 1:listLength
     theData.stimRT{Trial} = RT;
     
     % Delay
-    goTime = goTime + respEndTime;
+    desiredEndTime = ons_init + sum(theData.desiredDur(1:Trial)) + cumulativeCueTime - GetSecs;
+    goTime = goTime + desiredEndTime;
     DrawFormattedText(S.Window,'+','center','center', S.textColor);
     Screen(S.Window,'Flip');
     [keys RT] = qkeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay
     theData.judgeResp{Trial} = keys;
     theData.judgeRT{Trial} = RT;
 
-    % record
-    theData.num(Trial) = Trial; 
-    theData.dur(Trial) = GetSecs - ons_start;  %records precise trial duration
-    
+
 
     if S.useEL
         Eyelink('StopRecording');
@@ -314,6 +318,10 @@ for Trial = 1:listLength
     cmd = ['save ' matName];
     eval(cmd);
     
+    
+    % record
+    theData.num(Trial) = Trial;
+    theData.dur(Trial) = GetSecs - ons_start;  %records precise trial duration    
     
 end
 

@@ -229,7 +229,9 @@ Screen(S.Window,'Flip');
 qkeys(startTime,goTime,S.boxNum);
 
 oldModality = -1;
+cumulativeCueTime = 0;
 
+ons_init = GetSecs;
 for Trial = 1:listLength
     
     ons_start = GetSecs;
@@ -241,6 +243,7 @@ for Trial = 1:listLength
         goTime = modChangeTime;
         Screen(S.Window,'Flip');
         qkeys(ons_start,goTime,S.boxNum);
+        cumulativeCueTime = cumulativeCueTime + modChangeTime;
     else
         goTime = 0;
     end
@@ -254,14 +257,14 @@ for Trial = 1:listLength
         % will not parse any messages, events, or samples, that exist in
         % the data file prior to this message.
         Eyelink('Message', 'TRIALID %d', Trial);
-
+        
         % This supplies the title at the bottom of the eyetracker display
         Eyelink('command', 'record_status_message "TRIAL %d/%d"', Trial, listLength);
         % Before recording, we place reference graphics on the host display
-
+        
         %tell me what trial just started (to matlab command line)
         fprintf('trial # %i of %i\n', Trial, listLength)
-
+        
         % STEP 7.3
         % start recording eye position (preceded by a short pause so that
         % the tracker can finish the mode transition - used mainly if we're doing driftcorrection)
@@ -269,10 +272,10 @@ for Trial = 1:listLength
         % file_samples, file_events, link_samples, link_events availability
         Eyelink('Command', 'set_idle_mode');
         
-        Eyelink('StartRecording', 1, 1, 1, 1);           
-      
-    end
+        Eyelink('StartRecording', 1, 1, 1, 1);
         
+    end
+    
     
     theData.onset(Trial) = GetSecs - startTime; %precise onset of trial presentation
     
@@ -280,7 +283,7 @@ for Trial = 1:listLength
     goTime = fixTime + goTime;
     DrawFormattedText(S.Window,'+','center','center',S.textColor);
     Screen(S.Window,'Flip');
-    [keys RT] = qkeys(ons_start,goTime,S.boxNum); 
+    [keys RT] = qkeys(ons_start,goTime,S.boxNum);
     
     % Stim
     message = confDir{1+theData.item(Trial)};
@@ -292,27 +295,23 @@ for Trial = 1:listLength
         Screen('FrameRect', S.Window, 255, S.bottomLeftSquare )
         goTime = goTime + stimTime;
     else
-        %goTime = goTime + stimTime;
         goTime = goTime + theData.desiredDur(Trial) - respEndTime - fixTime;
     end
+    
     Screen(S.Window,'Flip');
     [keys RT] = qkeys(ons_start,goTime,S.boxNum);
     theData.stimresp{Trial} = keys;
     theData.stimRT{Trial} = RT;
     
     % Delay
-    goTime = goTime + respEndTime;
+    desiredEndTime = ons_init + sum(theData.desiredDur(1:Trial)) + cumulativeCueTime - GetSecs;
+    goTime = goTime + desiredEndTime;
     DrawFormattedText(S.Window,'+','center','center', S.textColor);
     Screen(S.Window,'Flip');
     [keys RT] = qkeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay
     theData.judgeResp{Trial} = keys;
     theData.judgeRT{Trial} = RT;
-
-    % record
-    theData.num(Trial) = Trial; 
-    theData.dur(Trial) = GetSecs - ons_start;  %records precise trial duration
     
-
     if S.useEL
         Eyelink('StopRecording');
         Eyelink('Message', 'TRIAL_RESULT 0');
@@ -320,7 +319,9 @@ for Trial = 1:listLength
     cmd = ['save ' matName];
     eval(cmd);
     
-    
+    % record
+    theData.num(Trial) = Trial;
+    theData.dur(Trial) = GetSecs - ons_start;  %records precise trial duration
 end
 
 DrawFormattedText(S.Window,'Saving...','center','center', [100 100 100]);

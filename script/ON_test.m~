@@ -16,6 +16,7 @@ theData.item = list.testList(:,1);
 theData.oldNew = [list.testList{:,3}];
 theData.absCon = [list.testList{:,2}];
 theData.modality = [list.testList{:,4}];
+theData.desiredDur = cell2mat(list.testList(:,5));
 
 listLength = length(theData.item);
 
@@ -47,6 +48,7 @@ if S.useEL
 % and control codes (e.g. tracker state bit and Eyelink key values).
 
 edfFile = [S.edfFileBase '_' num2str(RetBlock)];
+
 
 % open file to record data to
 trialFile = Eyelink('Openfile', edfFile);
@@ -108,7 +110,7 @@ stimTime = 3;  % the word and main response time
 respEndTime = .5;  % for running out of time
 fixTime = .5; % fixation time.  
 scanLeadinTime = 12;
-modChangeTime = 6;
+modChangeTime = 4;
 behLeadinTime = 4;
 
 centerX = S.myRect(3)/2;
@@ -140,7 +142,7 @@ fileName = 'hand.jpg';
 pic = imread(fileName);
 hand = Screen(S.Window,'MakeTexture', pic);
 
-RMCue = {'E', 'H'};
+RMCue = {'Eye', 'Hand'};
 hands = {'Left','Right'};
 
 if S.scanner==2
@@ -153,8 +155,8 @@ hsn = S.retHandNum;
 
 % for the first block, display instructions
 if RetBlock == 1
-    ins_txt{1} = sprintf('During this phase of the study, you will view a series of words and will be asked to report your confidence concerning whether each word is "Old" (you encountered it in the first phase) or "New" (you did not encounter it in the first phase).  \n \n High confident new word = pinky finger, top left corner.  \n  Low confident new word = ring finger, top right corner. \n  Low confident old word = middle finger, bottom right corner. \n High confident old word = pointer finger, bottom left corner.    \n \n Please make your response as quickly and as accurately as possible.');
-    DrawFormattedText(S.Window, ins_txt{1},'center','center',255, 55);
+    ins_txt{1} = sprintf('During this phase of the study, you will view a series of words and will be asked to report your confidence concerning whether each word is "Old" (you encountered it in the first phase) or "New" (you did not encounter it in the first phase).  \n \n For some blocks of trials, you will respond by moving your eyes to one of four corners of the screen.  For other blocks, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n High confident new word = pinky finger, top square.  \n  Low confident new word = ring finger, right square. \n  Low confident old word = middle finger, bottom square. \n High confident old word = pointer finger, left square.    \n \n Please make your response as quickly and as accurately as possible.  When you are not making a response with your eyes, please look at the central fixation cross.');
+    DrawFormattedText(S.Window, ins_txt{1},'center','center',255, 75);
     Screen('Flip',S.Window);
     AG3getKey('g',S.kbNum);
 end
@@ -162,7 +164,10 @@ end
     
 % Test stims: text cannot be preloaded, so stims will be generated on the
 % fly
-
+a = get(0,'MonitorPositions');
+S.scrsz = a(1,:);
+S.scrsz(2) = 1;
+%S.scrsz = get(S.screenNumber,'ScreenSize');
 message = 'Press g to begin!';
 [hPos, vPos] = AG3centerText(S.Window,S.screenNumber,message);
 Screen(S.Window,'DrawText',message, hPos, vPos, S.textColor);
@@ -171,14 +176,14 @@ Screen(S.Window,'Flip');
 % save output file
 cd(S.subData);
 
-matName = ['Acc1_retrieve_' num2str(sNum), '_' sName 'out(1).mat'];
+matName = ['Test_' num2str(sNum), '_' sName 'out(1).mat'];
 
 checkEmpty = isempty(dir (matName));
 suffix = 1;
 
 while checkEmpty ~=1
     suffix = suffix+1;
-    matName = ['Acc1_retrieve_' num2str(sNum), '_' sName 'out(' num2str(suffix) ').mat'];
+    matName = ['Test_' num2str(sNum), '_' sName 'out(' num2str(suffix) ').mat'];
     checkEmpty = isempty(dir (matName));
 end
 
@@ -219,11 +224,12 @@ end
 
 DrawFormattedText(S.Window,'+','center','center',S.textColor);
 Screen(S.Window,'Flip');
-qKeys(startTime,goTime,S.boxNum);
+qkeys(startTime,goTime,S.boxNum);
 
 oldModality = -1;
-
-for Trial = 1:10%listLength
+ons_init = GetSecs;
+cumulativeCuetime = 0;
+for Trial = 1:listLength
     
     ons_start = GetSecs;
     
@@ -233,7 +239,8 @@ for Trial = 1:10%listLength
         DrawFormattedText(S.Window,message,'center','center',S.textColor);
         goTime = modChangeTime;
         Screen(S.Window,'Flip');
-        qKeys(ons_start,goTime,S.boxNum);
+        qkeys(ons_start,goTime,S.boxNum);
+        cumulativeCueTime = cumulativeCueTime + modChangeTime;
     else
         goTime = 0;
     end
@@ -273,28 +280,32 @@ for Trial = 1:10%listLength
     goTime = fixTime + goTime;
     DrawFormattedText(S.Window,'+','center','center',S.textColor);
     Screen(S.Window,'Flip');
-    [keys RT] = qKeys(ons_start,goTime,S.boxNum); 
+    [keys RT] = qkeys(ons_start,goTime,S.boxNum); 
     
     % Stim
-    goTime = goTime + stimTime;
+    
     message = theData.item{Trial};
     DrawFormattedText(S.Window,message,'center','center',S.textColor);
     if ~strcmp(message, '+')
-        Screen('FrameRect', S.Window, 255, [0, 0, S.respSquareLength, S.respSquareLength])
-        Screen('FrameRect', S.Window, 255, [0, S.scrsz(4)-S.respSquareLength, S.respSquareLength, S.scrsz(4)])
-        Screen('FrameRect', S.Window, 255, [S.scrsz(3)-S.respSquareLength, 0, S.scrsz(3), S.respSquareLength])
-        Screen('FrameRect', S.Window, 255, [S.scrsz(3)-S.respSquareLength, S.scrsz(4)-S.respSquareLength, S.scrsz(3), S.scrsz(4)])
+        Screen('FrameRect', S.Window, 255, S.topRightSquare)
+        Screen('FrameRect', S.Window, 255, S.topLeftSquare )
+        Screen('FrameRect', S.Window, 255, S.bottomRightSquare )
+        Screen('FrameRect', S.Window, 255, S.bottomLeftSquare )
+        goTime = goTime + stimTime;
+    else
+        goTime = goTime + theData.desiredDur(Trial) - respEndTime - fixTime;
     end
     Screen(S.Window,'Flip');
-    [keys RT] = qKeys(ons_start,goTime,S.boxNum);
+    [keys RT] = qkeys(ons_start,goTime,S.boxNum);
     theData.stimresp{Trial} = keys;
     theData.stimRT{Trial} = RT;
     
     % Delay
-    goTime = goTime + respEndTime;
+    desiredEndTime = ons_init + sum(theData.desiredDur(1:Trial)) + cumulativeCueTime - GetSecs;
+    goTime = goTime + desiredEndTime;
     DrawFormattedText(S.Window,'+','center','center', S.textColor);
     Screen(S.Window,'Flip');
-    [keys RT] = qKeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay
+    [keys RT] = qkeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay
     theData.judgeResp{Trial} = keys;
     theData.judgeRT{Trial} = RT;
 

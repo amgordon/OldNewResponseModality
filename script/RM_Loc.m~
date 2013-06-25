@@ -21,7 +21,7 @@ list = load(listName);
 
 theData.item = list.locList(:,1);
 theData.modality = list.locList(:,2);
-theData.dur = list.locList(:,2);
+theData.desiredDur = list.locList(:,3);
 
 listLength = length(theData.item);
 
@@ -230,6 +230,7 @@ qkeys(startTime,goTime,S.boxNum);
 
 oldModality = -1;
 
+ons_init = GetSecs;
 for Trial = 1:listLength
     
     ons_start = GetSecs;
@@ -241,6 +242,7 @@ for Trial = 1:listLength
         goTime = modChangeTime;
         Screen(S.Window,'Flip');
         qkeys(ons_start,goTime,S.boxNum);
+        cumulativeCueTime = cumulativeCueTime + modChangeTime;
     else
         goTime = 0;
     end
@@ -292,14 +294,16 @@ for Trial = 1:listLength
         Screen('FrameRect', S.Window, 255, S.bottomLeftSquare )
         goTime = goTime + stimTime;
     else
-        goTime = goTime + theData.dur(Trial) - respEndTime - fixTime;
+        goTime = goTime + theData.desiredDur(Trial) - respEndTime - fixTime;
     end
+    
     Screen(S.Window,'Flip');
     [keys RT] = qkeys(ons_start,goTime,S.boxNum);
     theData.stimresp{Trial} = keys;
     theData.stimRT{Trial} = RT;
     
     % Delay
+    desiredEndTime = GetSecs - ons_init - sum(theData.desiredDur(1:Trial));
     goTime = goTime + respEndTime;
     DrawFormattedText(S.Window,'+','center','center', S.textColor);
     Screen(S.Window,'Flip');
@@ -307,6 +311,7 @@ for Trial = 1:listLength
     theData.judgeResp{Trial} = keys;
     theData.judgeRT{Trial} = RT;
 
+    
     % record
     theData.num(Trial) = Trial; 
     theData.dur(Trial) = GetSecs - ons_start;  %records precise trial duration

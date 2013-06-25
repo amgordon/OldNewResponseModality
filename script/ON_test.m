@@ -141,7 +141,7 @@ fileName = 'hand.jpg';
 pic = imread(fileName);
 hand = Screen(S.Window,'MakeTexture', pic);
 
-RMCue = {'E', 'H'};
+RMCue = {'Eye', 'Hand'};
 hands = {'Left','Right'};
 
 if S.scanner==2
@@ -154,7 +154,7 @@ hsn = S.retHandNum;
 
 % for the first block, display instructions
 if RetBlock == 1
-    ins_txt{1} = sprintf('During this phase of the study, you will view a series of words and will be asked to report your confidence concerning whether each word is "Old" (you encountered it in the first phase) or "New" (you did not encounter it in the first phase).  \n \n For some blocks of trials, preceded by an E, you will respond by moving your eyes to one of four corners of the screen.  For other blocks, preceded by an H, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n High confident new word = pinky finger, top square.  \n  Low confident new word = ring finger, right square. \n  Low confident old word = middle finger, bottom square. \n High confident old word = pointer finger, left square.    \n \n Please make your response as quickly and as accurately as possible.');
+    ins_txt{1} = sprintf('During this phase of the study, you will view a series of words and will be asked to report your confidence concerning whether each word is "Old" (you encountered it in the first phase) or "New" (you did not encounter it in the first phase).  \n \n For some blocks of trials, you will respond by moving your eyes to one of four corners of the screen.  For other blocks, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n High confident new word = pinky finger, top square.  \n  Low confident new word = ring finger, right square. \n  Low confident old word = middle finger, bottom square. \n High confident old word = pointer finger, left square.    \n \n Please make your response as quickly and as accurately as possible.  When you are not making a response with your eyes, please look at the central fixation cross.');
     DrawFormattedText(S.Window, ins_txt{1},'center','center',255, 75);
     Screen('Flip',S.Window);
     AG3getKey('g',S.kbNum);
@@ -223,7 +223,7 @@ end
 
 DrawFormattedText(S.Window,'+','center','center',S.textColor);
 Screen(S.Window,'Flip');
-qKeys(startTime,goTime,S.boxNum);
+qkeys(startTime,goTime,S.boxNum);
 
 oldModality = -1;
 
@@ -237,7 +237,7 @@ for Trial = 1:listLength
         DrawFormattedText(S.Window,message,'center','center',S.textColor);
         goTime = modChangeTime;
         Screen(S.Window,'Flip');
-        qKeys(ons_start,goTime,S.boxNum);
+        qkeys(ons_start,goTime,S.boxNum);
     else
         goTime = 0;
     end
@@ -277,20 +277,20 @@ for Trial = 1:listLength
     goTime = fixTime + goTime;
     DrawFormattedText(S.Window,'+','center','center',S.textColor);
     Screen(S.Window,'Flip');
-    [keys RT] = qKeys(ons_start,goTime,S.boxNum); 
+    [keys RT] = qkeys(ons_start,goTime,S.boxNum); 
     
     % Stim
     goTime = goTime + stimTime;
     message = theData.item{Trial};
     DrawFormattedText(S.Window,message,'center','center',S.textColor);
     if ~strcmp(message, '+')
-        Screen('FrameRect', S.Window, 255, S.topSquare)
-        Screen('FrameRect', S.Window, 255, S.rightSquare )
-        Screen('FrameRect', S.Window, 255, S.bottomSquare )
-        Screen('FrameRect', S.Window, 255, S.leftSquare )
+        Screen('FrameRect', S.Window, 255, S.topRightSquare)
+        Screen('FrameRect', S.Window, 255, S.topLeftSquare )
+        Screen('FrameRect', S.Window, 255, S.bottomRightSquare )
+        Screen('FrameRect', S.Window, 255, S.bottomLeftSquare )
     end
     Screen(S.Window,'Flip');
-    [keys RT] = qKeys(ons_start,goTime,S.boxNum);
+    [keys RT] = qkeys(ons_start,goTime,S.boxNum);
     theData.stimresp{Trial} = keys;
     theData.stimRT{Trial} = RT;
     
@@ -298,7 +298,7 @@ for Trial = 1:listLength
     goTime = goTime + respEndTime;
     DrawFormattedText(S.Window,'+','center','center', S.textColor);
     Screen(S.Window,'Flip');
-    [keys RT] = qKeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay
+    [keys RT] = qkeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay
     theData.judgeResp{Trial} = keys;
     theData.judgeRT{Trial} = RT;
 

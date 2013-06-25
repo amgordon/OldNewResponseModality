@@ -19,15 +19,16 @@ cd(thePath.list);
 
 list = load(listName);
 
-theData.item = list.RMList(:,1);
-theData.modality = [list.RMList{:,2}];
+theData.item = list.locList(:,1);
+theData.modality = list.locList(:,2);
+theData.dur = list.locList(:,2);
 
 listLength = length(theData.item);
 
 
 
 % preallocate:
-for preall = 1:listLength 
+for preall = 1:listLength
     theData.onset(preall) = 0;
     theData.dur(preall) =  0;
     theData.stimresp{preall} = 'noanswer';
@@ -44,77 +45,76 @@ end
 
 
 
-if S.useEL  
+if S.useEL
     % STEP 4
-% Provide Eyelink with details about the graphics environment
-% and perform some initializations. The information is returned
-% in a structure that also contains useful defaults
-% and control codes (e.g. tracker state bit and Eyelink key values).
-
-edfFile = [S.edfFileBase '_' num2str(RetBlock)];
-
-% open file to record data to
-trialFile = Eyelink('Openfile', edfFile);
-if trialFile~=0
-    printf('Cannot create EDF file ''%s'' ', edffilename);
-    Eyelink( 'Shutdown');
-    return;
+    % Provide Eyelink with details about the graphics environment
+    % and perform some initializations. The information is returned
+    % in a structure that also contains useful defaults
+    % and control codes (e.g. tracker state bit and Eyelink key values).
+    
+    edfFile = [S.edfFileBase '_' num2str(RetBlock)];
+    
+    % open file to record data to
+    trialFile = Eyelink('Openfile', edfFile);
+    if trialFile~=0
+        printf('Cannot create EDF file ''%s'' ', edffilename);
+        Eyelink( 'Shutdown');
+        return;
+    end
+    
+    Eyelink('command', 'add_file_preamble_text ''dynamic stim eyetracking''');
+    
+    % STEP 5
+    % SET UP TRACKER CONFIGURATION
+    % Setting the proper recording resolution, proper calibration type,
+    % as well as the data file content;
+    [width, height]=Screen('WindowSize', S.screenNumber);
+    Eyelink('command','screen_pixel_coords = %ld %ld %ld %ld', 0, 0, width-1, height-1);
+    % SETS 'screen_pixel_coords' field in *.ini file on host computer (in this case,
+    % 'physical.ini' to selected values
+    
+    Eyelink('message', 'DISPLAY_COORDS %ld %ld %ld %ld', 0, 0, width-1, height-1);
+    % notes that last change in edf file via message
+    
+    % set calibration type.
+    Eyelink('command', 'calibration_type = HV9');
+    % determines how many dots we will be using for calibration , set in calibr.ini
+    
+    % set EDF file contents
+    Eyelink('command', 'file_event_filter = LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON');
+    % choosing the info that is written to each column of edf file - here
+    % this is filtered data for events (L & R are samples, other = events)
+    
+    Eyelink('command', 'file_sample_data  = LEFT,RIGHT,GAZE,HREF,AREA,GAZERES,STATUS');
+    % choosing the info that is written to each column for raw data
+    
+    
+    % set link data (used for gaze cursor)
+    Eyelink('command', 'link_event_filter = LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON');
+    Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,STATUS');
+    % choosing the info that is available to stimulus computer in real time
+    % via ethernet
+    
+    % allow to use the big button on the eyelink gamepad to accept the
+    % calibration/drift correction target
+    Eyelink('command', 'button_function 5 "accept_target_fixation"');
+    
+    
+    % make sure we're still connected to eyetracker
+    if Eyelink('IsConnected')~=1
+        error('Eyetracker lost!!!')
+    end
+    
 end
-
-Eyelink('command', 'add_file_preamble_text ''dynamic stim eyetracking''');
-
-% STEP 5
-% SET UP TRACKER CONFIGURATION
-% Setting the proper recording resolution, proper calibration type,
-% as well as the data file content;
-[width, height]=Screen('WindowSize', S.screenNumber);
-Eyelink('command','screen_pixel_coords = %ld %ld %ld %ld', 0, 0, width-1, height-1);
-% SETS 'screen_pixel_coords' field in *.ini file on host computer (in this case,
-% 'physical.ini' to selected values
-
-Eyelink('message', 'DISPLAY_COORDS %ld %ld %ld %ld', 0, 0, width-1, height-1);   
-% notes that last change in edf file via message
-
-% set calibration type.
-Eyelink('command', 'calibration_type = HV9');
-% determines how many dots we will be using for calibration , set in calibr.ini
-
-% set EDF file contents
-Eyelink('command', 'file_event_filter = LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON');
-% choosing the info that is written to each column of edf file - here
-% this is filtered data for events (L & R are samples, other = events)
-
-Eyelink('command', 'file_sample_data  = LEFT,RIGHT,GAZE,HREF,AREA,GAZERES,STATUS');
-% choosing the info that is written to each column for raw data
-
-
-% set link data (used for gaze cursor)
-Eyelink('command', 'link_event_filter = LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON');
-Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,STATUS');
-% choosing the info that is available to stimulus computer in real time
-% via ethernet
-
-% allow to use the big button on the eyelink gamepad to accept the
-% calibration/drift correction target
-Eyelink('command', 'button_function 5 "accept_target_fixation"');
-
-
-% make sure we're still connected to eyetracker
-if Eyelink('IsConnected')~=1
-    error('Eyetracker lost!!!')
-end
-
-end
-
 
 
 % Diagram of trial
-stimTime = .3;  % the word and main response time
-respEndTime = .05;  % for running out of time
-fixTime = .05; % fixation time.  
-scanLeadinTime = .12;
-modChangeTime = .06;
-behLeadinTime = .4;
+stimTime = 3;  % the word and main response time
+respEndTime = .5;  % for running out of time
+fixTime = .5; % fixation time.  
+scanLeadinTime = 12;
+modChangeTime = 4;
+behLeadinTime = 4;
 
 centerX = S.myRect(3)/2;
 centerY = S.myRect(4)/2 - 12; 
@@ -145,8 +145,10 @@ fileName = 'hand.jpg';
 pic = imread(fileName);
 hand = Screen(S.Window,'MakeTexture', pic);
 
-RMCue = {'E', 'H'};
+RMCue = {'Eye', 'Hand'};
 hands = {'Left','Right'};
+confDir = {'+' 'High Confidence Old' 'Low Confidence Old' ...
+    'Low Confidence New' 'High Confidence New'};
 
 if S.scanner==2
     fingers = {'q' 'p'};
@@ -158,7 +160,7 @@ hsn = S.retHandNum;
 
 % for the first block, display instructions
 if RetBlock == 1
-    ins_txt{1} = sprintf('During each trial of this phase of the study, you will be given a confidence rating, and you will be asked to identify the correct response for that rating using either your eyes or your hands.  \n \n For EYE blocks of trials, preceded by an E, you will respond by moving your eyes to one of four squares diplayed on the screen.  For HAND blocks, preceded by an H, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n HC NEW = pinky finger, top square.  \n  LC NEW = ring finger, right square. \n  LC OLD = middle finger, bottom square. \n HC OLD = pointer finger, left square.    \n \n Please make your response as quickly and as accurately as possible.');
+    ins_txt{1} = sprintf('During each trial of this phase of the study, you will be given a confidence rating, and you will be asked to identify the correct response for that rating using either your eyes or your hands.  \n \n For EYE blocks of trials you will respond by moving your eyes to one of four squares diplayed on the screen.  For HAND blocks, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n HC NEW = pinky finger, top square.  \n  LC NEW = ring finger, right square. \n  LC OLD = middle finger, bottom square. \n HC OLD = pointer finger, left square.    \n \n Please make your response as quickly and as accurately as possible.  While you are not making a response with your eyes, please look at the fixation cross in the center of the screen.');
     DrawFormattedText(S.Window, ins_txt{1},'center','center',255, 75);
     Screen('Flip',S.Window);
     AG3getKey('g',S.kbNum);
@@ -224,7 +226,7 @@ end
 
 DrawFormattedText(S.Window,'+','center','center',S.textColor);
 Screen(S.Window,'Flip');
-qKeys(startTime,goTime,S.boxNum);
+qkeys(startTime,goTime,S.boxNum);
 
 oldModality = -1;
 
@@ -238,7 +240,7 @@ for Trial = 1:listLength
         DrawFormattedText(S.Window,message,'center','center',S.textColor);
         goTime = modChangeTime;
         Screen(S.Window,'Flip');
-        qKeys(ons_start,goTime,S.boxNum);
+        qkeys(ons_start,goTime,S.boxNum);
     else
         goTime = 0;
     end
@@ -278,20 +280,22 @@ for Trial = 1:listLength
     goTime = fixTime + goTime;
     DrawFormattedText(S.Window,'+','center','center',S.textColor);
     Screen(S.Window,'Flip');
-    [keys RT] = qKeys(ons_start,goTime,S.boxNum); 
+    [keys RT] = qkeys(ons_start,goTime,S.boxNum); 
     
     % Stim
-    goTime = goTime + stimTime;
-    message = theData.item{Trial};
+    message = confDir{1+theData.item(Trial)};
     DrawFormattedText(S.Window,message,'center','center',S.textColor);
     if ~strcmp(message, '+')
-        Screen('FrameRect', S.Window, 255, [0, S.scrsz(4)-S.respSquareLength)/2, S.respSquareLength, S.respSquareLength])
-        Screen('FrameRect', S.Window, 255, [0, S.scrsz(4)-S.respSquareLength, S.respSquareLength, S.scrsz(4)])
-        Screen('FrameRect', S.Window, 255, [S.scrsz(3)-S.respSquareLength, 0, S.scrsz(3), S.respSquareLength])
-        Screen('FrameRect', S.Window, 255, [S.scrsz(3)-S.respSquareLength, S.scrsz(4)-S.respSquareLength, S.scrsz(3), S.scrsz(4)])
+        Screen('FrameRect', S.Window, 255, S.topLeftSquare)
+        Screen('FrameRect', S.Window, 255, S.topRightSquare )
+        Screen('FrameRect', S.Window, 255, S.bottomRightSquare )
+        Screen('FrameRect', S.Window, 255, S.bottomLeftSquare )
+        goTime = goTime + stimTime;
+    else
+        goTime = goTime + theData.dur(Trial) - respEndTime - fixTime;
     end
     Screen(S.Window,'Flip');
-    [keys RT] = qKeys(ons_start,goTime,S.boxNum);
+    [keys RT] = qkeys(ons_start,goTime,S.boxNum);
     theData.stimresp{Trial} = keys;
     theData.stimRT{Trial} = RT;
     
@@ -299,7 +303,7 @@ for Trial = 1:listLength
     goTime = goTime + respEndTime;
     DrawFormattedText(S.Window,'+','center','center', S.textColor);
     Screen(S.Window,'Flip');
-    [keys RT] = qKeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay
+    [keys RT] = qkeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay
     theData.judgeResp{Trial} = keys;
     theData.judgeRT{Trial} = RT;
 

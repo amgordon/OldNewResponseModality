@@ -1,20 +1,44 @@
-y = load('160_words_Test_List');
-testSessLength = 80;
-testTotalLength = 320;
+function [  ] = AG3ListMaker()
+
+
+y = load('192_words_Test_List');
+
+%testSessLength = 80;
+testTotalLength = 384;
 numLists = 8;
-numSess = 5;
+numSess = 6;
 numItems = 64;
-nItemsPerBlock = 4;
+nItemsPerBlock = 16;
+nOptSeqPatternsPerRun = 4;
+blockOrder = Shuffle({[1 2 1 2] [2 1 2 1] [1 2 2 1] [2 1 1 2] [1 1 2 2] [2 2 1 1]});
 
 for i = 1:numLists;
     thisShuffleIdx = randperm(testTotalLength);
-    wordList_all = y.studyList(thisShuffleIdx,1);
-    absCon_all = y.studyList(thisShuffleIdx,2);
+    wordList_all = y.testList(thisShuffleIdx,1);
+    absCon_all = y.testList(thisShuffleIdx,2);
     
     oldNew_all = [];
     for j = 1:numSess
-        oldNew = ceil(randperm(testSessLength-1)/(numItems/2));
-        oldNew(oldNew>2)=0;
+        
+        %% opt seq stuff
+        for o=1:nOptSeqPatternsPerRun
+            thisPattern = (j-1)*nOptSeqPatternsPerRun+o;
+            fid = fopen(['../optseq/' 'ex1-' prepend(thisPattern,3) '.par']);
+            txt = textscan(fid, '%s %s %s');
+            cond_h{o} = txt{2}(1:2:end);
+            dur_h{o} = txt{3}(1:2:end);
+            
+            cond_h{o} = [cond_h{o}; '0'];
+            dur_h{o} = [dur_h{o}; '4.000'];
+        end
+        cond_h2 = vertcat(cond_h{:});
+        dur_h2 = vertcat(dur_h{:});
+        
+        oldNew = str2num(vertcat(cond_h2{:}));
+        dur = str2num(vertcat(dur_h2{:}));
+        %
+        %oldNew = ceil(randperm(testSessLength-1)/(numItems/2));
+        %oldNew(oldNew>2)=0;
         
         wordList = cell(size(oldNew));
         absCon = cell(size(oldNew));
@@ -22,23 +46,26 @@ for i = 1:numLists;
         wordList(oldNew==0) = {'+'};
         absCon(oldNew>0) = absCon_all(1+(j-1)*numItems:(j)*numItems);
         absCon(oldNew==0) = {0};
-             
-        %The last event is a '+'
-        wordList{testSessLength} = '+';
-        absCon{testSessLength} = 0;
-        oldNew(testSessLength) = 0;
+                     
+        %modality = 2 - mod(ceil((1:(length(oldNew)))/nItemsPerBlock),2);
+        thisBlock = blockOrder{1 + mod(j,length(blockOrder))};
         
-        modality = 2 - mod(ceil((1:(length(oldNew)))/nItemsPerBlock),2);
+        modality = [];
+        for o=1:nOptSeqPatternsPerRun
+            thisModality = repmat(thisBlock(o), length(cond_h{o}), 1);
+            modality = [modality; thisModality];
+        end
         
-        testList = [wordList' absCon' num2cell(oldNew') num2cell(modality)'];
-        save (sprintf('160_words_Test_List_%g_%g', i,j), 'testList' );
+        
+        testList = [wordList absCon num2cell(oldNew) num2cell(modality) num2cell(dur)];
+        save (sprintf('192_words_Test_List_%g_%g', i,j), 'testList' );
         
         % now make the 2nd half of lists, this time switching which is old and which
         % new.
-        testList = [wordList' absCon' num2cell(mod(3-oldNew',3)) num2cell(modality)'];
-        save (sprintf('160_words_Test_List_%g_%g', i+numLists, j), 'testList' );
+        testList = [wordList absCon num2cell(mod(3-oldNew,3)) num2cell(modality) num2cell(dur)];
+        save (sprintf('192_words_Test_List_%g_%g', i+numLists, j), 'testList' );
         
-        oldNew_all = [oldNew_all oldNew];
+        oldNew_all = [oldNew_all; oldNew];
         
     end
     oldNew_all(oldNew_all==0) = [];
@@ -52,7 +79,7 @@ for i = 1:numLists;
     
     studyList = [wordListStudy absConStudy];
     
-    save (sprintf('160_words_Study_List_%g', i), 'studyList');
+    save (sprintf('192_words_Study_List_%g', i), 'studyList');
     
     % now make the 2nd half of lists, switching old and new.
     wordListStudy = wordList_all(oldNew_all==2);
@@ -60,5 +87,9 @@ for i = 1:numLists;
     wordListStudy = wordListStudy(p);
     absConStudy = absConStudy(p);
     studyList = [wordListStudy absConStudy];
-    save (sprintf('160_words_Study_List_%g', i+numLists), 'studyList');
+    save (sprintf('192_words_Study_List_%g', i+numLists), 'studyList');
 end
+
+
+
+         

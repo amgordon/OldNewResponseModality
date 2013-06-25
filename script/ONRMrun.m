@@ -89,18 +89,25 @@ Screen('TextSize', S.Window, 30);
 % oldFont = Screen('TextFont', S.Window, 'Geneva')
 Screen('TextStyle', S.Window, 1);
 S.on = 1;  % Screen now on
-S.respSquareLength = 20;
+S.sqsz = 20;
 
 scr_h = get(0,'MonitorPositions');
 S.scrsz = scr_h(1,:);
 S.scrsz(2) = 1;
 
 radius = round(.8*min(S.scrsz(3:4)));
+xL = S.scrsz(3);
+yL = S.scrsz(4);
 
-S.bottomSquare = [(S.scrsz(3)-S.respSquareLength)/2, (S.scrsz(4)+radius-S.respSquareLength)/2, (S.scrsz(3)+S.respSquareLength)/2, (S.scrsz(4)+radius+S.respSquareLength)/2];
-S.rightSquare = [(S.scrsz(3)+radius-S.respSquareLength)/2, (S.scrsz(4)-S.respSquareLength)/2, (S.scrsz(3)+radius+S.respSquareLength)/2, (S.scrsz(4)+S.respSquareLength)/2];
-S.topSquare = [(S.scrsz(3)-S.respSquareLength)/2, (S.scrsz(4)-radius-S.respSquareLength)/2, (S.scrsz(3)+S.respSquareLength)/2, (S.scrsz(4)-radius+S.respSquareLength)/2];
-S.leftSquare = [(S.scrsz(3)-radius-S.respSquareLength)/2, (S.scrsz(4)-S.respSquareLength)/2, (S.scrsz(3)-radius+S.respSquareLength)/2, (S.scrsz(4)+S.respSquareLength)/2];
+S.bottomSquare = [(xL-S.sqsz)/2, (yL+radius-S.sqsz)/2, (xL+S.sqsz)/2, (yL+radius+S.sqsz)/2];
+S.rightSquare = [(xL+radius-S.sqsz)/2, (yL-S.sqsz)/2, (xL+radius+S.sqsz)/2, (yL+S.sqsz)/2];
+S.topSquare = [(xL-S.sqsz)/2, (yL-radius-S.sqsz)/2, (xL+S.sqsz)/2, (yL-radius+S.sqsz)/2];
+S.leftSquare = [(xL-radius-S.sqsz)/2, (yL-S.sqsz)/2, (xL-radius+S.sqsz)/2, (yL+S.sqsz)/2];
+
+S.bottomRightSquare = [(xL+radius-S.sqsz)/2, (yL+radius-S.sqsz)/2, (xL+radius+S.sqsz)/2, (yL+radius+S.sqsz)/2];
+S.bottomLeftSquare = [(xL-radius-S.sqsz)/2, (yL+radius-S.sqsz)/2, (xL-radius+S.sqsz)/2, (yL+radius+S.sqsz)/2];
+S.topRightSquare = [(xL+radius-S.sqsz)/2, (yL-radius-S.sqsz)/2, (xL+radius+S.sqsz)/2, (yL-radius+S.sqsz)/2];
+S.topLeftSquare = [(xL-radius-S.sqsz)/2, (yL-radius-S.sqsz)/2, (xL-radius+S.sqsz)/2, (yL-radius+S.sqsz)/2];
 
 if ismember(S.scanner, [1,4])
     S.useEL = 1;
@@ -228,7 +235,7 @@ elseif testType == 4
     
     for RMLocBlock = S.startBlock:3
         %listName = ['Test_List_' num2str(listNum)  '.mat'];
-        listName = ['RM_List_' num2str(mod(sNum,16)) '_' num2str(RMLocBlock) '.mat'];
+        listName = ['RM_Loc_List_' num2str(mod(sNum,16)) '_' num2str(RMLocBlock) '.mat'];
         RMLocData(RMLocBlock) = RM_Loc(thePath,listName,sName,sNum,RMLocBlock, S);
     end
 

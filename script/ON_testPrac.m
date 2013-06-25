@@ -137,7 +137,7 @@ fileName = 'hand.jpg';
 pic = imread(fileName);
 hand = Screen(S.Window,'MakeTexture', pic);
 
-RMCue = {'E', 'H'};
+RMCue = {'Eye', 'Hand'};
 hands = {'Left','Right'};
 
 if S.scanner==2
@@ -150,7 +150,7 @@ hsn = S.retHandNum;
 
 % for the first block, display instructions
 if RetBlock == 1
-    ins_txt{1} = sprintf('During each trial of this phase of the study, you will be given a confidence rating, and you will be asked to identify the correct response for that rating using either your eyes or your hands.  \n \n For EYE blocks of trials, preceded by an E, you will respond by moving your eyes to one of four squares diplayed on the screen.  For HAND blocks, preceded by an H, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n HC NEW = pinky finger, top square.  \n  LC NEW = ring finger, right square. \n  LC OLD = middle finger, bottom square. \n HC OLD = pointer finger, left square.    \n \n Please make your response as quickly and as accurately as possible.');
+    ins_txt{1} = sprintf('During each trial of this phase of the study, you will be given a confidence rating, and you will be asked to identify the correct response for that rating using either your eyes or your hands.  \n \n For EYE blocks of trials you will respond by moving your eyes to one of four squares diplayed on the screen.  For HAND blocks, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n HC NEW = pinky finger, top square.  \n  LC NEW = ring finger, right square. \n  LC OLD = middle finger, bottom square. \n HC OLD = pointer finger, left square.    \n \n Please make your response as quickly and as accurately as possible.  While you are not making a response with your eyes, please look at the fixation cross in the center of the screen.');
     DrawFormattedText(S.Window, ins_txt{1},'center','center',255, 75);
     Screen('Flip',S.Window);
     AG3getKey('g',S.kbNum);
@@ -277,10 +277,10 @@ for Trial = 1:listLength
     message = theData.item{Trial};
     DrawFormattedText(S.Window,message,'center','center',S.textColor);
     if ~strcmp(message, '+')
-        Screen('FrameRect', S.Window, 255, S.topSquare)
-        Screen('FrameRect', S.Window, 255, S.rightSquare )
-        Screen('FrameRect', S.Window, 255, S.bottomSquare )
-        Screen('FrameRect', S.Window, 255, S.leftSquare )
+        Screen('FrameRect', S.Window, 255, S.topRightSquare)
+        Screen('FrameRect', S.Window, 255, S.topLeftSquare )
+        Screen('FrameRect', S.Window, 255, S.bottomRightSquare )
+        Screen('FrameRect', S.Window, 255, S.bottomLeftSquare )
     end
     Screen(S.Window,'Flip');
     [keys RT] = qKeys(ons_start,goTime,S.boxNum);

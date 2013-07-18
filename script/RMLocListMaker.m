@@ -20,7 +20,11 @@ for i = 1:numListsLoc;
             cond_h{o} = txt{2}(1:2:end);
             dur_h{o} = txt{3}(1:2:end);
             cond_h{o} = [cond_h{o}; '0'];
-            dur_h{o} = [dur_h{o}; '4.000'];
+            if o==nOptSeqPatternsPerRunLoc
+                dur_h{o} = [dur_h{o}; '10.00'];
+            else
+                dur_h{o} = [dur_h{o}; '4.000'];
+            end
             
             thisModality = repmat(thisBlock(o), length(cond_h{o}), 1);
             modality = [modality; thisModality];

@@ -156,10 +156,10 @@ elseif S.scanner==1
     fingers = {'1!', '5%'};
 end
 
-S.hsn = 2-mod(ceil((RetBlock-.5)/2)+S.respSelHandNum,2);
+S.hsn = 2-mod(RetBlock+S.respSelHandNum,2);
 
 % for the first block, display instructions
-ins_txt{1} = sprintf('During each trial of this phase of the study, you will be given a judgment, and you will be asked to identify the correct response for that judgment using either your eyes or your hands.  \n \n For EYE blocks of trials you will respond by moving your eyes to one of two squares diplayed on the screen.  For HAND blocks, you will respond by pressing one of two buttons.  Your responses are as follows: \n \n OLD = %s.  \n  NEW = %s.   \n \n Please make your response as quickly and as accurately as possible.  While you are not making a response with your eyes, please look at the fixation cross in the center of the screen.', hands{S.hsn}, hands{3-S.hsn});
+ins_txt{1} = sprintf('During each trial of this phase of the study, you will be given a judgment, and you will be asked to identify the correct response for that judgment using either your eyes or your hands.  \n \n For EYE blocks of trials you will respond by moving your eyes to one of two squares diplayed on the screen.  For HAND blocks, you will respond by pressing one of two buttons.  Your responses are as follows: \n \n OLD = %s.  \n  NEW = %s.   \n \n Please make your response as quickly and as accurately as possible.  While you are not making a response with your eyes, please look at the fixation dot in the center of the screen.', hands{S.hsn}, hands{3-S.hsn});
 DrawFormattedText(S.Window, ins_txt{1},'center','center',S.textColor, 75);
 Screen('Flip',S.Window);
 AG3getKey('g',S.kbNum);

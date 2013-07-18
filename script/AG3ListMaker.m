@@ -29,7 +29,12 @@ for i = 1:numLists;
             dur_h{o} = txt{3}(1:2:end);
             
             cond_h{o} = [cond_h{o}; '0'];
-            dur_h{o} = [dur_h{o}; '4.000'];
+            
+            if o==nOptSeqPatternsPerRun
+                dur_h{o} = [dur_h{o}; '10.00'];
+            else
+                dur_h{o} = [dur_h{o}; '4.000'];
+            end
             
             dur_h{o} = cellfun(@(x) x(1:5), dur_h{o}, 'UniformOutput',false);
         end
@@ -38,6 +43,7 @@ for i = 1:numLists;
         
         oldNew = str2num(vertcat(cond_h2{:}));
         dur = str2num(vertcat(dur_h2{:}));
+        
         %
         %oldNew = ceil(randperm(testSessLength-1)/(numItems/2));
         %oldNew(oldNew>2)=0;

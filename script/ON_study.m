@@ -31,7 +31,7 @@ S.hsn = S.encHandNum;
 
 % for the first block, display instructions
 if EncBlock == 1
-    ins_txt =  sprintf('On each trial of this task, you will be asked to make judgments about whether the displayed word is abstract or concrete.  If the word is abstract, please press the %s button.  If the word is concrete please press the %s button.  Please make your response before the fixation cross appears. ', hands{S.hsn}, hands{3-S.hsn});
+    ins_txt =  sprintf('On each trial of this task, you will be asked to make judgments about whether the displayed word is abstract or concrete.  If the word is abstract, please press the %s button.  If the word is concrete please press the %s button.  Please make your response before the fixation dot appears. ', hands{S.hsn}, hands{3-S.hsn});
     DrawFormattedText(S.Window, ins_txt, 'center','center',S.textColor, 75);
     Screen('Flip',S.Window);
     AG3getKey('g',S.kbNum);
@@ -60,6 +60,7 @@ goTime = 0;
 Priority(MaxPriority(S.Window));
 
 %initial fixation
+AG3getKey('g',S.kbNum);
 startTime = GetSecs;
 goTime = goTime + behLeadinTime;
 Screen('FillOval', S.Window, S.textColor, S.centerFix);

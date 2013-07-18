@@ -152,10 +152,10 @@ elseif S.scanner==1
 end
 
 
-S.hsn = 2-mod(ceil((RetBlock-.5)/3)+S.retHandNum,2);
+S.hsn = 2-mod(RetBlock+S.retHandNum,2);
 % for the first block, display instructions
 
-ins_txt{1} = sprintf('During this phase of the study, you will view a series of words and will be asked to report your confidence concerning whether each word is "Old" (you encountered it in the first phase) or "New" (you did not encounter it in the first phase).  \n \n For some blocks of trials, you will respond by moving your eyes to one of two sides of the screen.  For other blocks, you will respond by pressing one of two buttons.  Your responses are as follows: \n \n Old word = %s.  \n  New word = %s.    \n \n Please make your response as quickly and as accurately as possible.  When you are not making a response with your eyes, please look at the central fixation cross.', hands{S.hsn}, hands{3-S.hsn});
+ins_txt{1} = sprintf('During this phase of the study, you will view a series of words and will be asked to report your confidence concerning whether each word is "Old" (you encountered it in the first phase) or "New" (you did not encounter it in the first phase).  \n \n For some blocks of trials, you will respond by moving your eyes to one of two sides of the screen.  For other blocks, you will respond by pressing one of two buttons.  Your responses are as follows: \n \n Old word = %s.  \n  New word = %s.    \n \n Please make your response as quickly and as accurately as possible.  When you are not making a response with your eyes, please look at the central fixation dot.', hands{S.hsn}, hands{3-S.hsn});
 DrawFormattedText(S.Window, ins_txt{1},'center','center',S.textColor, 75);
 Screen('Flip',S.Window);
 AG3getKey('g',S.kbNum);

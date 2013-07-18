@@ -147,8 +147,8 @@ hand = Screen(S.Window,'MakeTexture', pic);
 
 RMCue = {'Eye', 'Hand'};
 hands = {'Left','Right'};
-confDir = {'+' 'High Confidence Old' 'Low Confidence Old' ...
-    'Low Confidence New' 'High Confidence New'};
+ONStatus = {'OLD' 'NEW'};
+confDir = {'+' 'Old' 'New'};
 
 if S.scanner==2
     fingers = {'q' 'p'};
@@ -156,15 +156,14 @@ elseif S.scanner==1
     fingers = {'1!', '5%'};
 end
 
-hsn = S.retHandNum;
+S.hsn = 2-mod(ceil((RetBlock-.5)/2)+S.respSelHandNum,2);
 
 % for the first block, display instructions
-if RetBlock == 1
-    ins_txt{1} = sprintf('During each trial of this phase of the study, you will be given a confidence rating, and you will be asked to identify the correct response for that rating using either your eyes or your hands.  \n \n For EYE blocks of trials you will respond by moving your eyes to one of four squares diplayed on the screen.  For HAND blocks, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n HC NEW = pinky finger, top square.  \n  LC NEW = ring finger, right square. \n  LC OLD = middle finger, bottom square. \n HC OLD = pointer finger, left square.    \n \n Please make your response as quickly and as accurately as possible.  While you are not making a response with your eyes, please look at the fixation cross in the center of the screen.');
-    DrawFormattedText(S.Window, ins_txt{1},'center','center',255, 75);
-    Screen('Flip',S.Window);
-    AG3getKey('g',S.kbNum);
-end
+ins_txt{1} = sprintf('During each trial of this phase of the study, you will be given a judgment, and you will be asked to identify the correct response for that judgment using either your eyes or your hands.  \n \n For EYE blocks of trials you will respond by moving your eyes to one of two squares diplayed on the screen.  For HAND blocks, you will respond by pressing one of two buttons.  Your responses are as follows: \n \n OLD = %s.  \n  NEW = %s.   \n \n Please make your response as quickly and as accurately as possible.  While you are not making a response with your eyes, please look at the fixation cross in the center of the screen.', hands{S.hsn}, hands{3-S.hsn});
+DrawFormattedText(S.Window, ins_txt{1},'center','center',S.textColor, 75);
+Screen('Flip',S.Window);
+AG3getKey('g',S.kbNum);
+
 
     
 % Test stims: text cannot be preloaded, so stims will be generated on the
@@ -224,7 +223,8 @@ elseif S.scanner ==2;
     goTime = goTime + behLeadinTime;
 end
 
-DrawFormattedText(S.Window,'+','center','center',S.textColor);
+Screen('FillOval', S.Window, S.textColor, S.centerFix);
+%DrawFormattedText(S.Window,'+','center','center',S.textColor);
 Screen(S.Window,'Flip');
 qkeys(startTime,goTime,S.boxNum);
 
@@ -240,6 +240,8 @@ for Trial = 1:listLength
     if newModality ~= oldModality;
         message = RMCue{theData.modality(Trial)};
         DrawFormattedText(S.Window,message,'center','center',S.textColor);
+        %         DrawFormattedText(S.Window,ONStatus{S.hsn}, S.leftText,'center',S.textColor);
+        %         DrawFormattedText(S.Window,ONStatus{3-S.hsn}, S.rightText,'center',S.textColor);
         goTime = modChangeTime;
         Screen(S.Window,'Flip');
         qkeys(ons_start,goTime,S.boxNum);
@@ -281,20 +283,20 @@ for Trial = 1:listLength
     
     % Fixation
     goTime = fixTime + goTime;
-    DrawFormattedText(S.Window,'+','center','center',S.textColor);
+    Screen('FillOval', S.Window, S.textColor, S.centerFix);
     Screen(S.Window,'Flip');
     [keys RT] = qkeys(ons_start,goTime,S.boxNum);
     
     % Stim
     message = confDir{1+theData.item(Trial)};
-    DrawFormattedText(S.Window,message,'center','center',S.textColor);
+    
     if ~strcmp(message, '+')
-        Screen('FrameRect', S.Window, 255, S.topLeftSquare)
-        Screen('FrameRect', S.Window, 255, S.topRightSquare )
-        Screen('FrameRect', S.Window, 255, S.bottomRightSquare )
-        Screen('FrameRect', S.Window, 255, S.bottomLeftSquare )
+        DrawFormattedText(S.Window,message,'center','center',S.textColor);
+        Screen('FillOval', S.Window, S.textColor, S.leftFix);
+        Screen('FillOval', S.Window, S.textColor, S.rightFix);
         goTime = goTime + stimTime;
     else
+        Screen('FillOval', S.Window, S.textColor, S.centerFix);
         goTime = goTime + theData.desiredDur(Trial) - respEndTime - fixTime;
     end
     
@@ -306,7 +308,7 @@ for Trial = 1:listLength
     % Delay
     desiredEndTime = ons_init + sum(theData.desiredDur(1:Trial)) + cumulativeCueTime - GetSecs;
     goTime = goTime + desiredEndTime;
-    DrawFormattedText(S.Window,'+','center','center', S.textColor);
+    Screen('FillOval', S.Window, S.textColor, S.centerFix);
     Screen(S.Window,'Flip');
     [keys RT] = qkeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay
     theData.judgeResp{Trial} = keys;

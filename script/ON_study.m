@@ -27,12 +27,12 @@ for preall = startTrial:listLength
 end
 
 hands = {'Left','Right'};
-hsn = S.encHandNum;
+S.hsn = S.encHandNum;
 
 % for the first block, display instructions
 if EncBlock == 1
-    ins_txt =  sprintf('On each trial of this task, you will be asked to make judgments about whether the displayed word is abstract or concrete.  If the word is abstract, please press the %s button.  If the word is concrete please press the %s button.  Please make your response before the fixation cross appears. ', hands{hsn}, hands{3-hsn});
-    DrawFormattedText(S.Window, ins_txt, 'center','center',255, 75);
+    ins_txt =  sprintf('On each trial of this task, you will be asked to make judgments about whether the displayed word is abstract or concrete.  If the word is abstract, please press the %s button.  If the word is concrete please press the %s button.  Please make your response before the fixation cross appears. ', hands{S.hsn}, hands{3-S.hsn});
+    DrawFormattedText(S.Window, ins_txt, 'center','center',S.textColor, 75);
     Screen('Flip',S.Window);
     AG3getKey('g',S.kbNum);
 end
@@ -62,7 +62,7 @@ Priority(MaxPriority(S.Window));
 %initial fixation
 startTime = GetSecs;
 goTime = goTime + behLeadinTime;
-DrawFormattedText(S.Window,'+','center','center',S.textColor);
+Screen('FillOval', S.Window, S.textColor, S.centerFix);
 Screen(S.Window,'Flip');
 AG3recordKeys(startTime,goTime,S.kbNum);  % not collecting keys, just a delay
 
@@ -74,7 +74,7 @@ for Trial = startTrial:listLength
        
         % ITI
         goTime = blankTime;
-        DrawFormattedText(S.Window,'+','center','center',S.textColor);
+        Screen('FillOval', S.Window, S.textColor, S.centerFix);
         Screen(S.Window,'Flip');
         AG3recordKeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay     
         

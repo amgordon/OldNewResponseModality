@@ -1,4 +1,4 @@
-function [  ] = RMLocListMaker()
+function [  ] = RMLocListMaker(thePath)
 
 % RM Localizer
 numSessLoc = 4;
@@ -14,7 +14,7 @@ for i = 1:numListsLoc;
         modality = [];
         for o=1:nOptSeqPatternsPerRunLoc
             thisPattern = (j-1)*nOptSeqPatternsPerRunLoc+o;
-            fid = fopen(['../optseq/' 'ex2-' prepend(thisPattern,3) '.par']);
+            fid = fopen(fullfile(thePath.start, 'optseq', ['ex2-' prepend(thisPattern,3) '.par']));
             txt = textscan(fid, '%s %s %s');
             
             cond_h{o} = txt{2}(1:2:end);

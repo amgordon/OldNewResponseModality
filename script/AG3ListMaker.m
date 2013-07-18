@@ -30,6 +30,8 @@ for i = 1:numLists;
             
             cond_h{o} = [cond_h{o}; '0'];
             dur_h{o} = [dur_h{o}; '4.000'];
+            
+            dur_h{o} = cellfun(@(x) x(1:5), dur_h{o}, 'UniformOutput',false);
         end
         cond_h2 = vertcat(cond_h{:});
         dur_h2 = vertcat(dur_h{:});

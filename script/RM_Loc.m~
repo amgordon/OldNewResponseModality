@@ -147,8 +147,7 @@ hand = Screen(S.Window,'MakeTexture', pic);
 
 RMCue = {'Eye', 'Hand'};
 hands = {'Left','Right'};
-confDir = {'+' 'High Confidence Old' 'Low Confidence Old' ...
-    'Low Confidence New' 'High Confidence New'};
+confDir = {'+' 'Old' 'New'};
 
 if S.scanner==2
     fingers = {'q' 'p'};
@@ -160,8 +159,8 @@ hsn = S.retHandNum;
 
 % for the first block, display instructions
 if RetBlock == 1
-    ins_txt{1} = sprintf('During each trial of this phase of the study, you will be given a confidence rating, and you will be asked to identify the correct response for that rating using either your eyes or your hands.  \n \n For EYE blocks of trials you will respond by moving your eyes to one of four squares diplayed on the screen.  For HAND blocks, you will respond by pressing one of four buttons.  Your responses are as follows: \n \n HC NEW = pinky finger, top square.  \n  LC NEW = ring finger, right square. \n  LC OLD = middle finger, bottom square. \n HC OLD = pointer finger, left square.    \n \n Please make your response as quickly and as accurately as possible.  While you are not making a response with your eyes, please look at the fixation cross in the center of the screen.');
-    DrawFormattedText(S.Window, ins_txt{1},'center','center',255, 75);
+    ins_txt{1} = sprintf('During each trial of this phase of the study, you will be given a judgment, and you will be asked to identify the correct response for that judgment using either your eyes or your hands.  \n \n For EYE blocks of trials you will respond by moving your eyes to one of two squares diplayed on the screen.  For HAND blocks, you will respond by pressing one of two buttons.  Your responses are as follows: \n \n OLD = %s.  \n  NEW = %s.   \n \n Please make your response as quickly and as accurately as possible.  While you are not making a response with your eyes, please look at the fixation cross in the center of the screen.', hands{S.retHandNum}, hands{3-S.retHandNum});
+    DrawFormattedText(S.Window, ins_txt{1},'center','center',S.textColor, 75);
     Screen('Flip',S.Window);
     AG3getKey('g',S.kbNum);
 end
@@ -229,6 +228,7 @@ Screen(S.Window,'Flip');
 qkeys(startTime,goTime,S.boxNum);
 
 oldModality = -1;
+cumulativeCueTime = 0;
 
 ons_init = GetSecs;
 for Trial = 1:listLength
@@ -256,14 +256,14 @@ for Trial = 1:listLength
         % will not parse any messages, events, or samples, that exist in
         % the data file prior to this message.
         Eyelink('Message', 'TRIALID %d', Trial);
-
+        
         % This supplies the title at the bottom of the eyetracker display
         Eyelink('command', 'record_status_message "TRIAL %d/%d"', Trial, listLength);
         % Before recording, we place reference graphics on the host display
-
+        
         %tell me what trial just started (to matlab command line)
         fprintf('trial # %i of %i\n', Trial, listLength)
-
+        
         % STEP 7.3
         % start recording eye position (preceded by a short pause so that
         % the tracker can finish the mode transition - used mainly if we're doing driftcorrection)
@@ -271,27 +271,26 @@ for Trial = 1:listLength
         % file_samples, file_events, link_samples, link_events availability
         Eyelink('Command', 'set_idle_mode');
         
-        Eyelink('StartRecording', 1, 1, 1, 1);           
-      
-    end
+        Eyelink('StartRecording', 1, 1, 1, 1);
         
+    end
+    
     
     theData.onset(Trial) = GetSecs - startTime; %precise onset of trial presentation
     
     % Fixation
     goTime = fixTime + goTime;
-    DrawFormattedText(S.Window,'+','center','center',S.textColor);
+    %DrawFormattedText(S.Window,'+','center','center',S.textColor);
+    Screen('FillOval', S.scrsz(3)-10
     Screen(S.Window,'Flip');
-    [keys RT] = qkeys(ons_start,goTime,S.boxNum); 
+    [keys RT] = qkeys(ons_start,goTime,S.boxNum);
     
     % Stim
     message = confDir{1+theData.item(Trial)};
     DrawFormattedText(S.Window,message,'center','center',S.textColor);
     if ~strcmp(message, '+')
-        Screen('FrameRect', S.Window, 255, S.topLeftSquare)
-        Screen('FrameRect', S.Window, 255, S.topRightSquare )
-        Screen('FrameRect', S.Window, 255, S.bottomRightSquare )
-        Screen('FrameRect', S.Window, 255, S.bottomLeftSquare )
+        Screen('FrameRect', S.Window, S.textColor, S.leftSquare)
+        Screen('FrameRect', S.Window, S.textColor, S.rightSquare )
         goTime = goTime + stimTime;
     else
         goTime = goTime + theData.desiredDur(Trial) - respEndTime - fixTime;
@@ -303,20 +302,14 @@ for Trial = 1:listLength
     theData.stimRT{Trial} = RT;
     
     % Delay
-    desiredEndTime = GetSecs - ons_init - sum(theData.desiredDur(1:Trial));
-    goTime = goTime + respEndTime;
+    desiredEndTime = ons_init + sum(theData.desiredDur(1:Trial)) + cumulativeCueTime - GetSecs;
+    goTime = goTime + desiredEndTime;
     DrawFormattedText(S.Window,'+','center','center', S.textColor);
     Screen(S.Window,'Flip');
     [keys RT] = qkeys(ons_start,goTime,S.boxNum);  % not collecting keys, just a delay
     theData.judgeResp{Trial} = keys;
     theData.judgeRT{Trial} = RT;
-
     
-    % record
-    theData.num(Trial) = Trial; 
-    theData.dur(Trial) = GetSecs - ons_start;  %records precise trial duration
-    
-
     if S.useEL
         Eyelink('StopRecording');
         Eyelink('Message', 'TRIAL_RESULT 0');
@@ -324,7 +317,9 @@ for Trial = 1:listLength
     cmd = ['save ' matName];
     eval(cmd);
     
-    
+    % record
+    theData.num(Trial) = Trial;
+    theData.dur(Trial) = GetSecs - ons_start;  %records precise trial duration
 end
 
 DrawFormattedText(S.Window,'Saving...','center','center', [100 100 100]);

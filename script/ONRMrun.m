@@ -81,11 +81,12 @@ HideCursor;
 
 % Screen commands
 S.screenNumber = max(Screen('Screens'));
-S.screenColor = 0;
-S.textColor = 255;
+S.screenColor = 255;
+S.textColor = 0;
 S.blinkColor  = [0 0 0];
 [S.Window, S.myRect] = Screen(S.screenNumber, 'OpenWindow', S.screenColor, [], 32);
-Screen('TextSize', S.Window, 30);
+S.textSize = 30;
+Screen('TextSize', S.Window, S.textSize);
 % oldFont = Screen('TextFont', S.Window, 'Geneva')
 Screen('TextStyle', S.Window, 1);
 S.on = 1;  % Screen now on
@@ -95,7 +96,7 @@ scr_h = get(0,'MonitorPositions');
 S.scrsz = scr_h(1,:);
 S.scrsz(2) = 1;
 
-radius = round(.8*min(S.scrsz(3:4)));
+radius = round(min(S.scrsz(3:4)));
 xL = S.scrsz(3);
 yL = S.scrsz(4);
 
@@ -108,6 +109,15 @@ S.bottomRightSquare = [(xL+radius-S.sqsz)/2, (yL+radius-S.sqsz)/2, (xL+radius+S.
 S.bottomLeftSquare = [(xL-radius-S.sqsz)/2, (yL+radius-S.sqsz)/2, (xL-radius+S.sqsz)/2, (yL+radius+S.sqsz)/2];
 S.topRightSquare = [(xL+radius-S.sqsz)/2, (yL-radius-S.sqsz)/2, (xL+radius+S.sqsz)/2, (yL-radius+S.sqsz)/2];
 S.topLeftSquare = [(xL-radius-S.sqsz)/2, (yL-radius-S.sqsz)/2, (xL-radius+S.sqsz)/2, (yL-radius+S.sqsz)/2];
+
+fixRad = 12;
+S.centerFix = [(xL-fixRad)/2, (yL-fixRad+S.textSize)/2, (xL+fixRad)/2, (yL+S.textSize+fixRad)/2];
+S.leftFix = [(xL-radius-fixRad)/2, (yL-fixRad+S.textSize)/2, (xL-radius+fixRad)/2, (yL+fixRad+S.textSize)/2];
+S.rightFix = [(xL+radius-fixRad)/2, (yL-fixRad+S.textSize)/2, (xL+radius+fixRad)/2, (yL+fixRad+S.textSize)/2];
+
+textRad = 30;
+S.leftText = (xL-radius-textRad)/2;
+S.rightText = (xL+radius-110)/2;
 
 if ismember(S.scanner, [1,4])
     S.useEL = 1;
@@ -151,7 +161,7 @@ elseif testType == 2
         fprintf('Running experiment on a ''%s'' tracker.\n', vs );
     end
     
-    for RMLocBlock = S.startBlock:3
+    for RMLocBlock = S.startBlock:4
         %listName = ['Test_List_' num2str(listNum)  '.mat'];
         listName = ['RM_Loc_List_' num2str(1+mod(sNum,16)) '_' num2str(RMLocBlock) '.mat'];
         testPracData(RMLocBlock) = RM_Loc(thePath,listName,sName,sNum,RMLocBlock, S);
@@ -233,7 +243,7 @@ elseif testType == 4
     
     for RMLocBlock = S.startBlock:4
         %listName = ['Test_List_' num2str(listNum)  '.mat'];
-        listName = ['RM_Loc_List_' num2str(mod(sNum,16)) '_' num2str(RMLocBlock) '.mat'];
+        listName = ['RM_Loc_List_' num2str(1+mod(sNum-1,16)) '_' num2str(RMLocBlock) '.mat'];
         RMLocData(RMLocBlock) = RM_Loc(thePath,listName,sName,sNum,RMLocBlock, S);
     end
 

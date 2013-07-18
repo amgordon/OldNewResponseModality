@@ -1,4 +1,4 @@
-function [] = EBcalibration(thePath,subject)
+function [] = calibrationSimple(thePath,subject)
 
 % Calibrate eye tracker
 % Adapted from KGS lab by A Gordon and then by K LaRocque 05/2013
@@ -24,6 +24,7 @@ try
 
     %Eyelink
     el=EyelinkInitDefaults(Window); % give eyelink info about graphics, perform initializations
+
     if ~EyelinkInit(1, 1) % initialize eyelink
         fprintf('Eyelink Init aborted.\n');
         cleanup;  % cleanup function
@@ -63,7 +64,7 @@ try
         error('Eyetracker lost!!!')
     end
 
-    EyelinkDoTrackerSetup(el); % calibrate
+    EyelinkDoTrackerSetupAG(el); % calibrate
     fprintf('done calibrating')
     cd(fullfile(thePath.data))
 

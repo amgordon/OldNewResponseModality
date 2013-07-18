@@ -8,8 +8,11 @@ if nargin == 0
     error('Must specify thePath')
 end
 
+sName = 'xxxxxxx';
 if nargin<2
-    sName = input('Enter date (e.g. ''11Feb09'') ','s');
+    while (length(sName) > 4)
+    sName = input('Enter name, max 4 chars (e.g. ''AG'') ','s');
+    end
 end
 
 if nargin<3
@@ -78,26 +81,42 @@ HideCursor;
 
 % Screen commands
 S.screenNumber = max(Screen('Screens'));
-S.screenColor = 0;
-S.textColor = 255;
+S.screenColor = 255;
+S.textColor = 0;
 S.blinkColor  = [0 0 0];
 [S.Window, S.myRect] = Screen(S.screenNumber, 'OpenWindow', S.screenColor, [], 32);
-Screen('TextSize', S.Window, 30);
+S.textSize = 30;
+Screen('TextSize', S.Window, S.textSize);
 % oldFont = Screen('TextFont', S.Window, 'Geneva')
 Screen('TextStyle', S.Window, 1);
 S.on = 1;  % Screen now on
-S.respSquareLength = 100;
+S.sqsz = 20;
 
 scr_h = get(0,'MonitorPositions');
 S.scrsz = scr_h(1,:);
 S.scrsz(2) = 1;
 
-radius = round(.5*min(S.scrsz(3:4)));
+radius = round(min(S.scrsz(3:4)));
+xL = S.scrsz(3);
+yL = S.scrsz(4);
 
-S.bottomSquare = [(S.scrsz(3)-S.respSquareLength)/2, (S.scrsz(4)+radius-S.respSquareLength)/2, (S.scrsz(3)+S.respSquareLength)/2, (S.scrsz(4)+radius+S.respSquareLength)/2];
-S.rightSquare = [(S.scrsz(3)+radius-S.respSquareLength)/2, (S.scrsz(4)-S.respSquareLength)/2, (S.scrsz(3)+radius+S.respSquareLength)/2, (S.scrsz(4)+S.respSquareLength)/2];
-S.topSquare = [(S.scrsz(3)-S.respSquareLength)/2, (S.scrsz(4)-radius-S.respSquareLength)/2, (S.scrsz(3)+S.respSquareLength)/2, S.scrsz(4)];
-S.leftSquare = [(S.scrsz(3)-radius-S.respSquareLength)/2, (S.scrsz(4)-radius-S.respSquareLength)/2, (S.scrsz(3)-radius+S.respSquareLength)/2, (S.scrsz(4)-radius+S.respSquareLength)/2];
+S.bottomSquare = [(xL-S.sqsz)/2, (yL+radius-S.sqsz)/2, (xL+S.sqsz)/2, (yL+radius+S.sqsz)/2];
+S.rightSquare = [(xL+radius-S.sqsz)/2, (yL-S.sqsz)/2, (xL+radius+S.sqsz)/2, (yL+S.sqsz)/2];
+S.topSquare = [(xL-S.sqsz)/2, (yL-radius-S.sqsz)/2, (xL+S.sqsz)/2, (yL-radius+S.sqsz)/2];
+S.leftSquare = [(xL-radius-S.sqsz)/2, (yL-S.sqsz)/2, (xL-radius+S.sqsz)/2, (yL+S.sqsz)/2];
+
+S.bottomRightSquare = [(xL+radius-S.sqsz)/2, (yL+radius-S.sqsz)/2, (xL+radius+S.sqsz)/2, (yL+radius+S.sqsz)/2];
+S.bottomLeftSquare = [(xL-radius-S.sqsz)/2, (yL+radius-S.sqsz)/2, (xL-radius+S.sqsz)/2, (yL+radius+S.sqsz)/2];
+S.topRightSquare = [(xL+radius-S.sqsz)/2, (yL-radius-S.sqsz)/2, (xL+radius+S.sqsz)/2, (yL-radius+S.sqsz)/2];
+S.topLeftSquare = [(xL-radius-S.sqsz)/2, (yL-radius-S.sqsz)/2, (xL-radius+S.sqsz)/2, (yL-radius+S.sqsz)/2];
+
+fixRad = 12;
+S.centerFix = [(xL-fixRad)/2, (yL-fixRad+S.textSize)/2, (xL+fixRad)/2, (yL+S.textSize+fixRad)/2];
+S.leftFix = [(xL-radius-fixRad)/2, (yL-fixRad+S.textSize)/2, (xL-radius+fixRad)/2, (yL+fixRad+S.textSize)/2];
+S.rightFix = [(xL+radius-fixRad)/2, (yL-fixRad+S.textSize)/2, (xL+radius+fixRad)/2, (yL+fixRad+S.textSize)/2];
+
+S.leftText = 
+
 
 if ismember(S.scanner, [1,4])
     S.useEL = 1;
@@ -109,7 +128,7 @@ if testType == 1
     saveName = ['ONRMStudy' sName '_' num2str(sNum) '.mat'];
     
     for RespSelBlock = 1
-        listName = sprintf('160_words_Study_List_%g.mat', mod(sNum, 16));
+        listName = sprintf('192_words_Study_List_%g.mat', mod(sNum, 16));
         respSelData(RespSelBlock) = ON_study(thePath,listName,sName,sNum,S,RespSelBlock, 1);
     end
     
@@ -127,15 +146,13 @@ if testType == 1
     % here
     
 elseif testType == 2
-    saveName = ['ONRMTest' sName '_' num2str(sNum) '.mat'];
-    
-    if S.useEL
+      if S.useEL
         if Eyelink('initialize') ~= 0
             fprintf('error in connecting to the eye tracker\n\n');
             return;
         end
         
-        S.edfFileBase = answer{1};
+        S.edfFileBase = [sName '_L'];
         
         S.el=EyelinkInitDefaults(S.Window);
         
@@ -143,17 +160,19 @@ elseif testType == 2
         fprintf('Running experiment on a ''%s'' tracker.\n', vs );
     end
     
+    for RMLocBlock = S.startBlock:3
+        %listName = ['Test_List_' num2str(listNum)  '.mat'];
+        listName = ['RM_Loc_List_' num2str(1+mod(sNum,16)) '_' num2str(RMLocBlock) '.mat'];
+        testPracData(RMLocBlock) = RM_Loc(thePath,listName,sName,sNum,RMLocBlock, S);
+    end
 
-    listName = 'practiceTestList';
-    ONPracTestData = ON_testPrac(thePath,listName,sName,sNum,1, S);
-    
-    
+   
     checkEmpty = isempty(dir (saveName));
     suffix = 1;
     
     while checkEmpty ~=1
         suffix = suffix+1;
-        saveName = ['AG3_ONTestPractice_' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
+        saveName = ['testPrac_' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
         checkEmpty = isempty(dir (saveName));
     end
     
@@ -162,8 +181,6 @@ elseif testType == 2
     if S.useEL
         Eyelink('ShutDown');
     end
-    % Output file for each block is saved within BH1test; full file saved
-    % here
     
 elseif testType == 3
     saveName = ['ONRMTest' sName '_' num2str(sNum) '.mat'];
@@ -174,7 +191,7 @@ elseif testType == 3
             return;
         end
         
-        S.edfFileBase = sName;
+        S.edfFileBase = [sName '_T'];
         
         S.el=EyelinkInitDefaults(S.Window);
         
@@ -182,9 +199,9 @@ elseif testType == 3
         fprintf('Running experiment on a ''%s'' tracker.\n', vs );
     end
     
-    for ONTestBlock = S.startBlock:5
+    for ONTestBlock = S.startBlock:6
         %listName = ['Test_List_' num2str(listNum)  '.mat'];
-        listName = ['160_words_Test_List_' num2str(mod(sNum,16)) '_' num2str(ONTestBlock) '.mat'];
+        listName = ['192_words_Test_List_' num2str(mod(sNum,16)) '_' num2str(ONTestBlock) '.mat'];
         ONTestData(ONTestBlock) = ON_test(thePath,listName,sName,sNum,ONTestBlock, S);
     end
     
@@ -207,25 +224,44 @@ elseif testType == 3
     
     
 elseif testType == 4
+        saveName = ['RMLoc' sName '_' num2str(sNum) '.mat'];
     
-    saveName = ['RMLoc' sName '_' num2str(sNum) '.mat'];
-    
-    for RMLocBlock = S.startBlock:3
-        %listName = ['Test_List_' num2str(listNum)  '.mat'];
-        listName = ['RM_List_' num2str(mod(sNum,16)) '_' num2str(RMLocBlock) '.mat'];
-        RMLocData(RMLocBlock) = RM_Loc(thePath,listName,sName,sNum,RMLocBlock, S);
+    if S.useEL
+        if Eyelink('initialize') ~= 0
+            fprintf('error in connecting to the eye tracker\n\n');
+            return;
+        end
+        
+        S.edfFileBase = [sName '_L'];
+        
+        S.el=EyelinkInitDefaults(S.Window);
+        
+        [v vs]=Eyelink('GetTrackerVersion');
+        fprintf('Running experiment on a ''%s'' tracker.\n', vs );
     end
     
+    for RMLocBlock = S.startBlock:4
+        %listName = ['Test_List_' num2str(listNum)  '.mat'];
+        listName = ['RM_Loc_List_' num2str(1+mod(sNum-1,16)) '_' num2str(RMLocBlock) '.mat'];
+        RMLocData(RMLocBlock) = RM_Loc(thePath,listName,sName,sNum,RMLocBlock, S);
+    end
+
+   
     checkEmpty = isempty(dir (saveName));
     suffix = 1;
     
     while checkEmpty ~=1
         suffix = suffix+1;
-        saveName = ['RMLoc' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
+        saveName = ['RMLoc_' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
         checkEmpty = isempty(dir (saveName));
     end
     
     eval(['save ' saveName]);
+    
+    if S.useEL
+        Eyelink('ShutDown');
+    end
+
 end
 
 message = 'End of script. Press any key to exit.';

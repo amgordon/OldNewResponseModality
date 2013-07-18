@@ -7,13 +7,11 @@ nTrialsFix = 8;
 nConds = 4;
 nTrialsPerBlock = 4;
 nBlocksPerRun = 16;
-condLabels = {'HC OLD' 'LC OLD' 'LC NEW' 'HC NEW' '+'};
+condLabels = {'OLD' 'OLD' 'NEW' 'NEW' '+'};
 
 for n = 1:nListIts
     for s = 1:nSess
-        
-        
-        
+          
         for c=1:nConds
             stims_h{c} = c*ones(1, nTrialsEachMod);
         end

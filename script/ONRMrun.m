@@ -111,9 +111,9 @@ S.topRightSquare = [(xL+radius-S.sqsz)/2, (yL-radius-S.sqsz)/2, (xL+radius+S.sqs
 S.topLeftSquare = [(xL-radius-S.sqsz)/2, (yL-radius-S.sqsz)/2, (xL-radius+S.sqsz)/2, (yL-radius+S.sqsz)/2];
 
 fixRad = 12;
-S.centerFix = [(xL-fixRad)/2, (yL-fixRad+S.textSize)/2, (xL+fixRad)/2, (yL+S.textSize+fixRad)/2];
-S.leftFix = [(xL-radius-fixRad)/2, (yL-fixRad+S.textSize)/2, (xL-radius+fixRad)/2, (yL+fixRad+S.textSize)/2];
-S.rightFix = [(xL+radius-fixRad)/2, (yL-fixRad+S.textSize)/2, (xL+radius+fixRad)/2, (yL+fixRad+S.textSize)/2];
+S.centerFix = [(xL-fixRad)/2, (yL-fixRad)/2, (xL+fixRad)/2, (yL+fixRad)/2];
+S.leftFix = [(xL-radius-fixRad)/2, (yL-fixRad)/2, (xL-radius+fixRad)/2, (yL+fixRad)/2];
+S.rightFix = [(xL+radius-fixRad)/2, (yL-fixRad)/2, (xL+radius+fixRad)/2, (yL+fixRad)/2];
 
 textRad = 30;
 S.leftText = (xL-radius-textRad)/2;
@@ -147,7 +147,11 @@ if testType == 1
     % here
     
 elseif testType == 2
-      if S.useEL
+    if S.useEL
+        if S.scanner==1
+            Eyelink('SetAddress', '10.0.3.2');
+        end
+
         if Eyelink('initialize') ~= 0
             fprintf('error in connecting to the eye tracker\n\n');
             return;
@@ -187,6 +191,10 @@ elseif testType == 3
     saveName = ['ONRMTest' sName '_' num2str(sNum) '.mat'];
     
     if S.useEL
+        if S.scanner==1
+            Eyelink('SetAddress', '10.0.3.2');
+        end
+        
         if Eyelink('initialize') ~= 0
             fprintf('error in connecting to the eye tracker\n\n');
             return;
@@ -228,6 +236,10 @@ elseif testType == 4
         saveName = ['RMLoc' sName '_' num2str(sNum) '.mat'];
     
     if S.useEL
+        if S.scanner==1
+            Eyelink('SetAddress', '10.0.3.2');
+        end
+        
         if Eyelink('initialize') ~= 0
             fprintf('error in connecting to the eye tracker\n\n');
             return;

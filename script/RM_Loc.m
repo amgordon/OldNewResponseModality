@@ -54,6 +54,7 @@ if S.useEL
     
     edfFile = [S.edfFileBase '_' num2str(RetBlock)];
     
+
     % open file to record data to
     trialFile = Eyelink('Openfile', edfFile);
     if trialFile~=0

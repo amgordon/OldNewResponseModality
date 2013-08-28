@@ -98,6 +98,24 @@ for i = 1:numLists;
     save (sprintf('192_words_Study_List_%g', i+numLists), 'studyList');
 end
 
-
-
+% code for making the second, shuffled, study list.
+for i=1:16
+    
+    d = dir(sprintf('192_words_Study_List_%g.mat', i));
+    
+    y = load(d(1).name);
+    
+    studyList = y.studyList; 
+    save (sprintf('192_words_Study_List_%g_1', i), 'studyList');
+    
+    nItems = size(y.studyList,1);
+    shfIdx = Shuffle(1:nItems);
+    
+    words = y.studyList(shfIdx,1);
+    absCon = y.studyList(shfIdx,2);
+    
+    studyList = [words absCon]; 
+    save (sprintf('192_words_Study_List_%g_2', i), 'studyList');
+    
+end
          

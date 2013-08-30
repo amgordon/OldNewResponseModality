@@ -6,8 +6,8 @@
 pwd
 thePath.start = pwd;
 
-[pathstr,curr_dir,ext,versn] = fileparts(pwd);
-if ~strcmp(curr_dir,'ONRM')
+[pathstr,curr_dir,ext] = fileparts(pwd);
+if ~strcmp(curr_dir,'OldNewResponseModality')
     fprintf(['You must start the experiment from the ' curr_dir ' directory. Go there and try again.\n']);
 else
     thePath.script = fullfile(thePath.start, 'script');

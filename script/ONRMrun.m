@@ -148,9 +148,9 @@ if testType == 1
     
 elseif testType == 2
     if S.useEL
-        if S.scanner==1
-            Eyelink('SetAddress', '10.0.3.2');
-        end
+%         if S.scanner==1
+%             Eyelink('SetAddress', '10.0.3.2');
+%         end
 
         if Eyelink('initialize') ~= 0
             fprintf('error in connecting to the eye tracker\n\n');
@@ -191,9 +191,9 @@ elseif testType == 3
     saveName = ['ONRMTest' sName '_' num2str(sNum) '.mat'];
     
     if S.useEL
-        if S.scanner==1
-            Eyelink('SetAddress', '10.0.3.2');
-        end
+%         if S.scanner==1
+%             Eyelink('SetAddress', '10.0.3.2');
+%         end
         
         if Eyelink('initialize') ~= 0
             fprintf('error in connecting to the eye tracker\n\n');
@@ -236,9 +236,9 @@ elseif testType == 4
         saveName = ['RMLoc' sName '_' num2str(sNum) '.mat'];
     
     if S.useEL
-        if S.scanner==1
-            Eyelink('SetAddress', '10.0.3.2');
-        end
+%         if S.scanner==1
+%             Eyelink('SetAddress', '10.0.3.2');
+%         end
         
         if Eyelink('initialize') ~= 0
             fprintf('error in connecting to the eye tracker\n\n');

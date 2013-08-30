@@ -1,5 +1,5 @@
 
-function AG3run(thePath, sName, sNum, testType, scanner, startBlock)
+function ONRMrun(thePath, sName, sNum, testType, scanner, startBlock)
 % function AG3run(thePath)
 % e.g. AG3run(thePath, '66Feb66', 5, 4, 0, 1)
 %
@@ -21,8 +21,8 @@ end
 
 if nargin<4
     testType = 0;
-    while ~ismember(testType,[1,2,3,4])
-        testType = input('Which task?  ON_S[1] ON_TPrac[2] ON_T[3] or ON_L[4]? ');
+    while ~ismember(testType,[1,2,3,4,5])
+        testType = input('Which task?  ON_S[1] ON_TPrac[2] ON_S2[3] ON_T[4] ON_L[5]? ');
     end
 end
 
@@ -129,7 +129,7 @@ if testType == 1
     saveName = ['ONRMStudy' sName '_' num2str(sNum) '.mat'];
     
     for RespSelBlock = 1
-        listName = sprintf('192_words_Study_List_%g.mat', mod(sNum, 16));
+        listName = sprintf('192_words_Study_List_%g_1.mat', mod(sNum, 16));
         respSelData(RespSelBlock) = ON_study(thePath,listName,sName,sNum,S,RespSelBlock, 1);
     end
     
@@ -143,8 +143,7 @@ if testType == 1
     end
     
     eval(['save ' saveName]);
-    % Output file for each block is saved within BH1test; full file saved
-    % here
+
     
 elseif testType == 2
     if S.useEL
@@ -186,8 +185,27 @@ elseif testType == 2
     if S.useEL
         Eyelink('ShutDown');
     end
-    
+ 
 elseif testType == 3
+    saveName = ['ONRMStudyRound2' sName '_' num2str(sNum) '.mat'];
+    
+    for RespSelBlock = 1
+        listName = sprintf('192_words_Study_List_%g_2.mat', mod(sNum, 16));
+        respSelData(RespSelBlock) = ON_study(thePath,listName,sName,sNum,S,RespSelBlock, 1);
+    end
+    
+    checkEmpty = isempty(dir (saveName));
+    suffix = 1;
+    
+    while checkEmpty ~=1
+        suffix = suffix+1;
+        saveName = ['ONRMStudyRound2_' sName '_' num2str(sNum) '(' num2str(suffix) ')' '.mat'];
+        checkEmpty = isempty(dir (saveName));
+    end
+    
+    eval(['save ' saveName]);
+    
+elseif testType == 4
     saveName = ['ONRMTest' sName '_' num2str(sNum) '.mat'];
     
     if S.useEL
@@ -232,7 +250,7 @@ elseif testType == 3
     % here
     
     
-elseif testType == 4
+elseif testType == 5
         saveName = ['RMLoc' sName '_' num2str(sNum) '.mat'];
     
     if S.useEL

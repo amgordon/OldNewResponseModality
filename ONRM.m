@@ -7,6 +7,7 @@ pwd
 thePath.start = pwd;
 
 [pathstr,curr_dir,ext] = fileparts(pwd);
+
 if ~strcmp(curr_dir,'OldNewResponseModality')
     fprintf(['You must start the experiment from the ' curr_dir ' directory. Go there and try again.\n']);
 else
@@ -14,6 +15,7 @@ else
     thePath.stim = fullfile(thePath.start, 'stim');
     thePath.data = fullfile(thePath.start, 'data');
     thePath.list = fullfile(thePath.start, 'list');
+    thePath.main = fullfile(thePath.start);
     % add more dirs above
 
     % Add relevant paths for this experiment

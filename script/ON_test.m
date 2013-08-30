@@ -291,6 +291,7 @@ for Trial = 1:listLength
         Screen('FillOval', S.Window, S.textColor, S.rightFix);
         goTime = goTime + stimTime;
     else
+        Screen('FillOval', S.Window, S.textColor, S.centerFix);
         goTime = goTime + theData.desiredDur(Trial) - respEndTime - fixTime;
     end
     

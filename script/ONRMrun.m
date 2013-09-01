@@ -53,12 +53,19 @@ end
 if S.scanner == 1
     [S.boxNum S.boxType] = AG3getBoxNumber;  % buttonbox
     S.kbNum = AG3getKeyboardNumber; % keyboard
+    S.textSize = 30;
 elseif S.scanner == 3 % Mock scanner
     [S.boxNum S.boxType] = AG3getBoxNumber;  % buttonbox
     S.kbNum = AG3getKeyboardNumber; % keyboard
+    S.textSize = 30;
+elseif S.scanner == 4% eye tracker
+    [S.boxNum S.boxType] = AG3getBoxNumber;  % buttonbox
+    S.kbNum = AG3getKeyboardNumber; % keyboard
+    S.textSize = 20;
 else
     S.boxNum = AG3getKeyboardNumber;  % buttonbox
     S.kbNum = AG3getKeyboardNumber; % keyboard
+    S.textSize = 30;
 end
 
 %   Condition numbers
@@ -85,16 +92,20 @@ S.screenColor = 255;
 S.textColor = 0;
 S.blinkColor  = [0 0 0];
 [S.Window, S.myRect] = Screen(S.screenNumber, 'OpenWindow', S.screenColor, [], 32);
-S.textSize = 30;
 Screen('TextSize', S.Window, S.textSize);
 % oldFont = Screen('TextFont', S.Window, 'Geneva')
 Screen('TextStyle', S.Window, 1);
 S.on = 1;  % Screen now on
 S.sqsz = 20;
+S.maxCharsOnLine = 75;
 
-scr_h = get(0,'MonitorPositions');
-S.scrsz = scr_h(1,:);
-S.scrsz(2) = 1;
+resolution=Screen('Resolution', S.screenNumber);
+S.scrsz = [1 1 resolution.width, resolution.height];
+% sca
+% 
+% scr_h = get(0,'MonitorPositions');
+% S.scrsz = scr_h(1,:);
+% S.scrsz(2) = 1;
 
 radius = round(min(S.scrsz(3:4)));
 xL = S.scrsz(3);

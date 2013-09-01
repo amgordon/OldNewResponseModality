@@ -163,9 +163,9 @@ AG3getKey('g',S.kbNum);
     
 % Test stims: text cannot be preloaded, so stims will be generated on the
 % fly
-a = get(0,'MonitorPositions');
-S.scrsz = a(1,:);
-S.scrsz(2) = 1;
+% a = get(0,'MonitorPositions');
+% S.scrsz = a(1,:);
+% S.scrsz(2) = 1;
 %S.scrsz = get(S.screenNumber,'ScreenSize');
 message = 'Press g to begin!';
 [hPos, vPos] = AG3centerText(S.Window,S.screenNumber,message);
